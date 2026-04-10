@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto p-6 my-10">
+    <div class="mb-6">
+        <a href="{% url 'mail_hub:account_list' %}" class="text-blue-600 hover:text-blue-800 text-sm flex items-center">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            Zurück zur Übersicht
+        </a>
+        <h1 class="text-3xl font-bold text-gray-800 mt-2">
+            {% if account.pk %}Konto-Einstellungen{% else %}Neues Konto hinzufügen{% endif %}
+        </h1>
+    </div>
+
+    <div class="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
+        <form method="post" class="p-8 space-y-6">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="flex flex-col">
+                    <label class="text-sm font-bold text-gray-700 mb-2">E-Mail Adresse</label>
+                    {{ form.email_address }}
+                    {% if form.email_address.errors %}<p class="text-red-500 text-xs mt-1">{{ form.email_address.errors.0 }}</p>{% endif %}
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm font-bold text-gray-700 mb-2">Anzeigename (optional)</label>
+                    {{ form.display_name }}
+                </div>
+            </div>
+
+            <hr class="border-gray-100">
+
+            <div class="flex flex-col">
+                <label class="text-sm font-bold text-gray-700 mb-2">Verbindungstyp</label>
+                {{ form.auth_type }}
+                <p class="text-xs text-gray-500 mt-2">Wähle "Microsoft", wenn du ein Outlook/Office 365 Konto nutzt.</p>
+            </div>
+
+            <div id="imap-section" class="space-y-6 bg-gray-50 p-6 rounded-xl border border-gray-200">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-gray-500">IMAP Einstellungen</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="flex flex-col">
+                        <label class="text-sm font-bold text-gray-700 mb-2">IMAP Host</label>
+                        {{ form.imap_host }}
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="text-sm font-bold text-gray-700 mb-2">Passwort</label>
+                        {{ form.imap_password }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-6 border-t border-gray-100">
+                <div class="flex items-center">
+                    {{ form.is_priority }}
+                    <label class="ml-2 text-sm text-gray-600">Als Standard-Konto festlegen</label>
+                </div>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg transition-all transform hover:-translate-y-1">
+                    Speichern
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const authSelect = document.querySelector('select[name="auth_type"]');
+    const imapSection = document.getElementById('imap-section');
+
+    function toggleImapFields() {
+        // Blende IMAP-Felder nur ein, wenn NICHT 'ms_graph' gewählt ist
+        if (authSelect.value === 'ms_graph') {
+            imapSection.classList.add('hidden');
+        } else {
+            imapSection.classList.remove('hidden');
+        }
+    }
+
+    authSelect.addEventListener('change', toggleImapFields);
+    window.addEventListener('DOMContentLoaded', toggleImapFields);
+</script>
+{% endblock %}

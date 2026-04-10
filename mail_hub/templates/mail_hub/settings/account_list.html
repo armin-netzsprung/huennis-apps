@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto p-6 my-10">
+    <div class="flex justify-between items-center mb-10">
+        <h1 class="text-3xl font-bold text-gray-900">Deine Mail-Konten</h1>
+        <a href="{% url 'mail_hub:account_add' %}" class="bg-gray-900 text-white px-5 py-2.5 rounded-xl hover:bg-black transition flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-width="2" stroke-linecap="round"/></svg>
+            Konto hinzufügen
+        </a>
+    </div>
+
+    <div class="space-y-4">
+        {% for account in accounts %}
+        <div class="bg-white border border-gray-200 p-6 rounded-2xl flex items-center justify-between shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                    {% if account.auth_type == 'ms_graph' %}
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zM24 11.4H12.6V0H24v11.4z"/></svg>
+                    {% else %}
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" stroke-width="2"/></svg>
+                    {% endif %}
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-900">{{ account.email_address }}</h3>
+                    <p class="text-sm text-gray-500">{{ account.get_auth_type_display }}</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                {% if account.auth_type == 'ms_graph' %}
+                    <a href="{% url 'mail_hub:setup_ms' account.pk %}" class="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700">
+                        Login erneuern
+                    </a>
+                {% endif %}
+                <a href="{% url 'mail_hub:account_edit' account.pk %}" class="p-2 text-gray-400 hover:text-gray-600 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-width="2"/></svg>
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
+            <p class="text-gray-400">Keine Konten gefunden.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
