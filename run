@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Ermittle den Pfad, wo dieses Skript liegt (Hauptverzeichnis)
+BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Starte den Hub aus dem Unterordner
+python3 "$BASE_DIR/10-Manage-Scripte/hub.py"
+

@@ -1,0 +1,74 @@
+{% comment %} Netzsprung - Blog Home Sektion {% endcomment %}
+
+<section class="text-center space-y-4 py-8">
+    <div class="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 rounded-lg text-xs font-bold uppercase tracking-widest">
+        Code & SysAdmin Blog
+    </div>
+    <h1 class="text-5xl font-extrabold text-slate-900 tracking-tight">
+        Netz<span class="text-indigo-600">sprung</span>.de
+    </h1>
+    <p class="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed">
+        Praxisnahe Anleitungen für <strong>Linux (Ubuntu)</strong>, effiziente Workflows im <strong>Terminal</strong> und moderne Web-Entwicklung mit <strong>Python, Django & FastAPI</strong>.
+    </p>
+</section>
+
+<section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-slate-50 border border-slate-200 p-4 rounded-2xl text-center hover:border-indigo-300 transition group cursor-default">
+        <div class="text-2xl mb-1 group-hover:scale-110 transition">🐧</div>
+        <h3 class="font-bold text-slate-800 text-sm">Linux/Ubuntu</h3>
+    </div>
+    <div class="bg-slate-50 border border-slate-200 p-4 rounded-2xl text-center hover:border-blue-400 transition group cursor-default">
+        <div class="text-2xl mb-1 group-hover:scale-110 transition">🐍</div>
+        <h3 class="font-bold text-slate-800 text-sm">Python/Django</h3>
+    </div>
+    <div class="bg-slate-50 border border-slate-200 p-4 rounded-2xl text-center hover:border-emerald-400 transition group cursor-default">
+        <div class="text-2xl mb-1 group-hover:scale-110 transition">⚡</div>
+        <h3 class="font-bold text-slate-800 text-sm">FastAPI</h3>
+    </div>
+    <div class="bg-slate-50 border border-slate-200 p-4 rounded-2xl text-center hover:border-orange-400 transition group cursor-default">
+        <div class="text-2xl mb-1 group-hover:scale-110 transition">🐚</div>
+        <h3 class="font-bold text-slate-800 text-sm">Shell/Terminal</h3>
+    </div>
+</section>
+
+<section class="bg-white rounded-3xl p-8 sm:p-10 shadow-sm border border-slate-100">
+    <div class="flex flex-col md:flex-row gap-10 items-center">
+        <div class="flex-1 space-y-6">
+            <h2 class="text-3xl font-bold text-slate-800">Vom Terminal direkt in die Cloud.</h2>
+            <p class="text-slate-600 leading-relaxed">
+                Hier findest du echte <strong>Code-Snippets</strong> und <strong>Konfigurationen</strong>. 
+                Egal ob du deinen ersten Ubuntu-Server absicherst oder komplexe API-Strukturen mit Django aufbaust.
+            </p>
+            <ul class="space-y-2 text-slate-700">
+                <li class="flex items-center gap-2">
+                    <span class="text-emerald-500 font-bold">✓</span> Schritt-für-Schritt Anleitungen
+                </li>
+                <li class="flex items-center gap-2">
+                    <span class="text-emerald-500 font-bold">✓</span> Best Practices für Backend & DevOps
+                </li>
+                <li class="flex items-center gap-2">
+                    <span class="text-emerald-500 font-bold">✓</span> Direkt kopierbare Terminal-Befehle
+                </li>
+            </ul>
+        </div>
+        <div class="hidden md:block w-1/3 bg-slate-900 rounded-xl p-4 shadow-2xl rotate-2">
+            <div class="flex gap-1.5 mb-3">
+                <div class="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+            </div>
+            <code class="text-xs text-indigo-300 font-mono">
+                $ pip install fastapi<br>
+                $ uvicorn main:app --reload<br>
+                <span class="text-slate-500"># Server running at 127.0.0.1:8000</span>
+            </code>
+        </div>
+    </div>
+    
+    <div class="mt-12 pt-8 border-t border-slate-50 text-center">
+        <a href="{% url 'blog_index' %}" class="inline-flex items-center justify-center px-8 py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all transform hover:-translate-y-1 shadow-md">
+            Alle Tutorials & Beiträge
+            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+        </a>
+    </div>
+</section>

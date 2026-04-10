@@ -1,0 +1,20 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<div style="padding: 20px; background: #f8f9fa; border: 1px solid #ddd;">
+    <h2>Microsoft Konto verbinden: {{ account.email_address }}</h2>
+    <p>Bitte folgen Sie diesen Schritten:</p>
+    <ol>
+        <li>Öffnen Sie die Seite: <a href="{{ device_info.verification_uri }}" target="_blank"><strong>{{ device_info.verification_uri }}</strong></a></li>
+        <li>Geben Sie dort diesen Code ein: <h1 style="letter-spacing: 5px; color: #007bff;">{{ device_info.user_code }}</h1></li>
+        <li>Loggen Sie sich bei Microsoft ein und bestätigen Sie den Zugriff.</li>
+    </ol>
+    
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="flow_data" value="{{ flow_json }}">
+        <button type="submit" class="button" style="background: #28a745; color: white; padding: 10px 20px;">
+            Ich habe den Code eingegeben - Verbindung jetzt abschließen
+        </button>
+    </form>
+</div>
+{% endblock %}

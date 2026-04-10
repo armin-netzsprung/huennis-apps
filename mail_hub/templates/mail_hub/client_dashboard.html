@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static %}{% load mail_extras %}
+
+{% block extra_head %}
+<!-- <script src="{% static 'js/lucide.min.js' %}"></script> -->
+<script src="{% static 'tinymce/tinymce.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/mail_hub.css' %}">
+<style>
+    /* 1. Body fixieren */
+    body { overflow: hidden !important; margin: 0; }
+
+    /* 2. Den Wrapper exakt unter die 80px Navbar setzen */
+    .mail-wrapper { 
+        height: calc(100vh - 80px); 
+        display: flex; 
+        width: 100%;
+        background: white;
+        position: relative;
+    }
+    footer { display: none !important; }
+</style>
+{% endblock %}
+
+{% block main_class %}flex-grow w-full mt-0 px-0{% endblock %}
+
+{% block content %}
+<div id="mail-hub-main" class="mail-wrapper overflow-hidden layout-horizontal">
+    <aside id="sidebar" class="w-72 bg-slate-900 text-slate-300 flex flex-col border-r border-slate-800 shrink-0">
+        {% include "mail_hub/partials/sidebar_nav.html" %}
+    </aside>
+
+    <div class="resizer" id="resizer-1"></div>
+
+    <div id="content-area" class="flex flex-1 min-w-0">
+        
+        <main id="mail-list" class="w-[400px] flex flex-col bg-white border-r border-slate-200 shrink-0 min-h-0">
+            {% include "mail_hub/partials/email_list_container.html" %}
+        </main>
+
+        <div class="resizer" id="resizer-2"></div>
+
+        <section id="email-preview" class="flex-1 bg-white flex flex-col relative overflow-hidden min-w-0">
+            {% include "mail_hub/partials/preview_toolbar.html" %}
+            
+            <div id="preview-content-area" class="flex-1 flex flex-col overflow-hidden bg-white">
+                <div class="h-full flex flex-col items-center justify-center text-slate-300 p-12 text-center">
+                    <i data-lucide="mail-open" class="w-16 h-16 mb-4 opacity-20"></i>
+                    <p class="text-lg">Wählen Sie eine Nachricht aus,<br>um sie anzuzeigen</p>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script src="{% static 'js/mail_hub.js' %}"></script>
+{% endblock %}

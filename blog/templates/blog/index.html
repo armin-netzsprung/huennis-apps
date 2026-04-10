@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-12 bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+    <form method="GET" action="{% url 'blog_index' %}" class="flex flex-wrap gap-4 items-end">
+        
+        <div class="flex-grow min-w-[150px]">
+            <label class="block text-xs font-bold text-slate-400 uppercase mb-2 tracking-widest">Kategorie</label>
+            <select name="category" onchange="this.form.submit()" class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm focus:ring-2 focus:ring-sage-200">
+                <option value="">Alle Kategorien</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="flex-grow min-w-[150px]">
+            <label class="block text-xs font-bold text-slate-400 uppercase mb-2 tracking-widest">Autor</label>
+            <select name="author" onchange="this.form.submit()" class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm focus:ring-2 focus:ring-sage-200">
+                <option value="">Alle Autoren</option>
+                {% for author in authors %}
+                <option value="{{ author.id }}" {% if selected_author == author.id|stringformat:"s" %}selected{% endif %}>{{ author.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="flex-grow min-w-[150px]">
+            <label class="block text-xs font-bold text-slate-400 uppercase mb-2 tracking-widest">Zeitraum</label>
+            <select name="time" onchange="this.form.submit()" class="w-full bg-slate-50 border-none rounded-xl py-2 px-4 text-sm focus:ring-2 focus:ring-sage-200">
+                <option value="">Alle Beiträge</option>
+                
+                <optgroup label="Woche">
+                    <option value="this_week" {% if selected_time == 'this_week' %}selected{% endif %}>Diese Woche</option>
+                    <option value="last_week" {% if selected_time == 'last_week' %}selected{% endif %}>Letzte Woche</option>
+                </optgroup>
+
+                <optgroup label="Monat">
+                    <option value="this_month" {% if selected_time == 'this_month' %}selected{% endif %}>Diesen Monat</option>
+                    <option value="last_month" {% if selected_time == 'last_month' %}selected{% endif %}>Letzten Monat</option>
+                </optgroup>
+
+                <optgroup label="Jahr">
+                    <option value="this_year" {% if selected_time == 'this_year' %}selected{% endif %}>Dieses Jahr ({{ now|date:"Y" }})</option>
+                    <option value="last_year" {% if selected_time == 'last_year' %}selected{% endif %}>Letztes Jahr</option>
+                </optgroup>
+            </select>
+        </div>
+        
+        <div class="flex-none">
+            <a href="{% url 'blog_index' %}" class="inline-block px-4 py-2 text-sm text-slate-500 hover:text-red-500 transition">
+                Filter löschen
+            </a>
+        </div>
+    </form>
+</div>
+
+{% for post in posts %}
+<article class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mb-12">
+    {% if post.featured_image %}
+    <img src="{{ post.featured_image.url }}" alt="{{ post.chapter_title }}" class="w-full h-64 object-cover">
+    {% endif %}
+
+    <div class="p-8">
+        <span class="text-xs uppercase tracking-widest text-sage-600 font-bold">{{ post.category.name }}</span>
+        <h3 class="text-gray-400 text-sm mt-2">{{ post.part_title }}</h3>
+        <h2 class="text-3xl font-serif text-slate-800">{{ post.chapter_title }}</h2>
+        <div class="prose prose-slate max-w-none leading-relaxed line-clamp-3">
+            {{ post.content |safe|striptags|truncatewords:40 }} 
+        </div>
+
+        <a href="{% url 'post_detail' post.pk %}" class="mt-6 inline-block px-6 py-2 bg-slate-800 text-white rounded-full hover:bg-slate-700 transition">
+            Kapitel lesen
+        </a>
+    </div>
+</article>
+{% empty %}
+<div class="text-center py-20">
+    <p class="text-slate-400 italic">Keine Beiträge für diese Filterkombination gefunden.</p>
+    <a href="{% url 'blog_index' %}" class="text-sage-600 underline">Zurück zur Übersicht</a>
+</div>
+{% endfor %}
+{% endblock %}

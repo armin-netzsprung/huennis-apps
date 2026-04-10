@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Cloud Explorer | OfficeCentral365{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
+    
+    <div class="flex justify-between items-center bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800">Dokumenten Management</h1>
+            <p class="text-slate-500 text-sm">Verbunden mit cloud.netzsprung.de</p>
+        </div>
+        <a href="{% url 'home' %}" class="text-slate-400 hover:text-slate-600">Zurück zum Dashboard</a>
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden" style="height: 700px;">
+    
+    <iframe 
+        src="https://cloud.netzsprung.de/library/{{ SEAFILE_LIB_ID }}/{{ FOLDER_NAME }}/" 
+        class="w-full h-full border-none" 
+        allow="autoplay; camera; microphone; display-capture">
+    </iframe>
+
+    </div>
+
+    
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Impressum - Blick Dahinter{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-3xl p-8 sm:p-12 shadow-sm border border-slate-100 max-w-3xl mx-auto">
+    <h1 class="text-3xl font-serif mb-8 text-slate-800">Impressum</h1>
+    
+    <div class="space-y-8 text-slate-600">
+        <section>
+            <h2 class="text-sm font-bold uppercase tracking-widest text-slate-400 mb-2">Angaben gemäß § 5 TMG</h2>
+            <p>[Dein Name]<br>[Deine Straße]<br>[PLZ Ort]</p>
+        </section>
+
+        <section>
+            <h2 class="text-sm font-bold uppercase tracking-widest text-slate-400 mb-2">Kontakt</h2>
+            <p>E-Mail: [Deine E-Mail Adresse]</p>
+        </section>
+
+        <hr class="border-slate-100">
+
+        <section class="bg-slate-50 p-6 rounded-xl">
+            <h2 class="text-lg font-bold text-slate-800 mb-4">Haftungsausschluss (Wichtiger Rechtsschutz)</h2>
+            <div class="text-sm leading-relaxed space-y-4">
+                <p>Die auf dieser Webseite beschriebenen Informationen, Methoden und Übungen dienen ausschließlich der allgemeinen Information und Unterstützung des Genesungsprozesses. Sie stellen zu keinem Zeitpunkt eine medizinische oder psychologische Diagnose, Behandlung oder Therapie dar.</p>
+                <p><strong>Die Inhalte ersetzen keinesfalls eine professionelle Behandlung durch Ärzte oder Therapeuten.</strong></p>
+                <p>Der Autor übernimmt keine Haftung für Schäden oder gesundheitliche Folgen aus der Anwendung der bereitgestellten Informationen. Die Anwendung erfolgt auf eigene Verantwortung.</p>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="text-sm font-bold uppercase tracking-widest text-slate-400 mb-2">Urheberrecht</h2>
+            <p class="text-sm">Alle Inhalte dieses Werkes sind urheberrechtlich geschützt. Die Vervielfältigung oder Verbreitung bedarf der schriftlichen Zustimmung des Autors.</p>
+        </section>
+    </div>
+</div>
+{% endblock %}

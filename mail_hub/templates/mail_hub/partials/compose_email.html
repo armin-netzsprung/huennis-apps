@@ -1,0 +1,15 @@
+<div class="p-6 h-full flex flex-col bg-white">
+    <form id="compose-form" hx-post="{% url 'mail_hub:ajax_mail_send' %}">
+        <div class="space-y-4 mb-4">
+            <input type="text" name="to" placeholder="An" class="w-full border-b border-slate-200 py-2 focus:outline-none focus:border-amber-500">
+            <input type="text" name="subject" placeholder="Betreff" class="w-full border-b border-slate-200 py-2 focus:outline-none focus:border-amber-500">
+        </div>
+        
+        <textarea id="mail-editor" name="body">
+            <br><br>
+            {% if signature %}
+                <div class="signature">{{ signature.content_html|safe }}</div>
+            {% endif %}
+        </textarea>
+    </form>
+</div>

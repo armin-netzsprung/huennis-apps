@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'blog/css/style.css' %}">
+{% endblock %}
+
+{% block title %}{{ post.chapter_title }} - Blick Dahinter{% endblock %}
+
+{% block content %}
+<article class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mb-12">
+    
+    {% if post.featured_image %}
+    <img src="{{ post.featured_image.url }}" alt="{{ post.chapter_title }}" class="w-full h-80 object-cover">
+    {% endif %}
+
+    <div class="p-8 sm:p-12">
+        <div class="mb-8">
+            <span class="text-xs uppercase tracking-widest text-sage-600 font-bold px-3 py-1 bg-sage-50 rounded-full">
+                {{ post.category.name }}
+            </span>
+            <h3 class="text-slate-400 text-sm mt-6 font-medium tracking-wide uppercase">
+                {{ post.part_title }}
+            </h3>
+            <h1 class="text-4xl sm:text-5xl font-serif text-slate-800 mt-2 leading-tight">
+                {{ post.chapter_title }}
+            </h1>
+            {% if post.chapter_subtitle %}
+            <p class="text-xl italic text-slate-500 mt-4 font-serif">
+                {{ post.chapter_subtitle }}
+            </p>
+            {% endif %}
+            
+            <div class="mt-4 flex items-center text-slate-400 text-sm">
+                <span>Von {{ post.author.get_full_name|default:post.author.email }}</span>
+                <span class="mx-2">•</span>
+                <span>{{ post.created_at|date:"d. F Y" }}</span>
+            </div>
+        </div>
+
+        <div class="prose-content bg-slate-50 p-6 sm:p-8 rounded-2xl border-l-4 border-sage-400 mb-10 italic shadow-inner">
+            {{ post.introduction|safe }}
+        </div>
+
+        <div class="prose-content leading-relaxed text-lg">
+            {{ post.content|safe }}
+        </div>
+
+        {% if post.downloads.all %}
+        <div class="mt-16 p-8 bg-emerald-50 rounded-3xl border border-emerald-100 shadow-sm">
+            <h4 class="text-emerald-800 font-bold mb-6 flex items-center text-xl">
+                <svg class="w-6 h-6 mr-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Materialien zur Vertiefung
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {% for dl in post.downloads.all %}
+                <a href="{{ dl.file.url }}" class="flex items-center p-4 bg-white rounded-xl border border-emerald-100 hover:border-emerald-300 hover:shadow-md transition group">
+                    <div class="bg-emerald-100 p-2 rounded-lg mr-4 group-hover:bg-emerald-200 transition">
+                        <svg class="w-5 h-5 text-emerald-700" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M4 4a2 2 0 012-2h4.586A1 1 0 0111 2.414l4.293 4.293V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"></path>
+                        </svg>
+                    </div>
+                    <span class="text-emerald-900 font-medium">{{ dl.file_label }}</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="mt-16 pt-8 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+            <div class="text-slate-500 font-medium italic">Diesen Impuls teilen:</div>
+            <div class="flex space-x-3">
+                <a href="https://api.whatsapp.com/send?text={{ post.chapter_title|urlencode }}%20{{ request.build_absolute_uri|urlencode }}" 
+                   target="_blank" class="px-5 py-2 rounded-full bg-emerald-100 text-emerald-700 text-sm font-semibold hover:bg-emerald-200 transition">
+                   WhatsApp
+                </a>
+                <a href="mailto:?subject={{ post.chapter_title|urlencode }}&body=Das%20könnte%20dir%20helfen:%20{{ request.build_absolute_uri|urlencode }}" 
+                   class="px-5 py-2 rounded-full bg-slate-100 text-slate-700 text-sm font-semibold hover:bg-slate-200 transition">
+                   E-Mail
+                </a>
+                <button onclick="navigator.clipboard.writeText(window.location.href); alert('Link kopiert!')" 
+                        class="px-5 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-semibold hover:bg-blue-100 transition">
+                   Link kopieren
+                </button>
+            </div>
+        </div>
+    </div>
+</article>
+
+<div class="text-center mb-12">
+    <a href="{% url 'blog_index' %}" class="text-slate-500 hover:text-sage-600 font-medium flex items-center justify-center">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Zurück zur Übersicht
+    </a>
+</div>
+{% endblock %}

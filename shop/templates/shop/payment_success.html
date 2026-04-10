@@ -1,0 +1,27 @@
+{% extends "core/base.html" %}
+
+{% block title %}Kauf erfolgreich - Blick dahinter{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto my-16 p-12 bg-white rounded-3xl shadow-sm border border-slate-100 text-center">
+    <div class="bg-green-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-8">
+        <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+    </div>
+
+    <h1 class="font-serif text-3xl text-slate-800 mb-4">Zahlung erfolgreich!</h1>
+    <p class="text-slate-500 mb-10 leading-relaxed">
+        Vielen Dank für dein Vertrauen. Das Material <strong>{{ product.name }}</strong> wurde für dein Konto freigeschaltet.
+    </p>
+
+    <a href="{% url 'download_product' product.id %}" 
+       class="inline-block px-10 py-4 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-700 transition shadow-lg">
+        Jetzt PDF herunterladen
+    </a>
+
+    <p class="text-sm text-slate-400 mt-10">
+        Du findest deine gekauften Materialien jederzeit in deinem <a href="{% url 'profile' %}" class="underline text-slate-600">Profil</a>.
+    </p>
+</div>
+{% endblock %}

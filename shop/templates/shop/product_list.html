@@ -1,0 +1,53 @@
+{% extends "core/base.html" %}
+
+{% block title %}Shop - Arbeitsmaterial & Skills{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-12">
+    <div class="text-center mb-16">
+        <h1 class="font-serif text-4xl text-slate-800 mb-4">Materialien für deinen Weg</h1>
+        <p class="text-slate-500 max-w-2xl mx-auto">
+            Hier findest du vertiefende Arbeitshefte, Bücher und Übungen, die dich bei deiner persönlichen Entwicklung unterstützen.
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+        {% for product in products %}
+        <div class="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 flex flex-col">
+            <div class="relative h-64 bg-slate-100 overflow-hidden">
+                {% if product.preview_image %}
+                    <img src="{{ product.preview_image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
+                {% else %}
+                    <div class="w-full h-full flex items-center justify-center text-slate-300">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-width="1.5"/></svg>
+                    </div>
+                {% endif %}
+                
+                <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-4 py-1.5 rounded-full shadow-sm">
+                    <span class="text-sm font-bold text-slate-800">
+                        {% if product.price > 0 %}{{ product.price }} €{% else %}Gratis{% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <div class="p-8 flex-grow flex flex-col">
+                <span class="text-[10px] uppercase tracking-[0.2em] text-sage-600 font-bold mb-2">{{ product.category.name }}</span>
+                <h2 class="text-xl font-serif text-slate-800 mb-3">{{ product.name }}</h2>
+                <p class="text-sm text-slate-500 mb-6 line-clamp-3">{{ product.description }}</p>
+                
+                <div class="mt-auto pt-6 border-t border-slate-50">
+                    <a href="{% url 'product_detail' product.slug %}" 
+                       class="inline-block w-full text-center py-3 {% if product.price > 0 %}bg-slate-800 text-white{% else %}bg-sage-light text-sage-800{% endif %} rounded-xl font-semibold hover:opacity-90 transition">
+                        {% if product.price > 0 %}Ansehen & Kaufen{% else %}Kostenlos laden{% endif %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+            <div class="col-span-full text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
+                <p class="text-slate-400 italic">Aktuell sind noch keine Materialien im Shop verfügbar.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

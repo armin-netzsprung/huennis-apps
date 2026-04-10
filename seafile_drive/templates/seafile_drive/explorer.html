@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto my-8 px-4">
+    
+    <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+            <nav class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-sage-600 mb-2">
+                <span>{{ repo_name }}</span>
+                <span class="text-slate-300">/</span>
+                <span class="text-slate-400 font-medium lowercase font-mono">{{ current_path }}</span>
+            </nav>
+            <h1 class="text-3xl font-serif text-slate-800">Dateien & Dokumente</h1>
+        </div>
+
+        <div class="flex gap-3">
+            <button onclick="createNewFile('docx')" class="bg-blue-50 text-blue-600 border border-blue-100 px-4 py-2 rounded-xl text-sm font-bold hover:bg-blue-100 transition shadow-sm flex items-center gap-2">
+                <span>📝</span> Word
+            </button>
+            <button onclick="createNewFile('xlsx')" class="bg-emerald-50 text-emerald-600 border border-emerald-100 px-4 py-2 rounded-xl text-sm font-bold hover:bg-emerald-100 transition shadow-sm flex items-center gap-2">
+                <span>📊</span> Excel
+            </button>
+
+            <button class="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-xl text-sm hover:bg-slate-50 transition shadow-sm">
+                Ordner
+            </button>
+            <button class="bg-slate-800 text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-slate-700 transition shadow-md">
+                + Hochladen
+            </button>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-slate-50/50 border-b border-slate-100">
+                <tr>
+                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Name</th>
+                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Größe</th>
+                    <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Aktionen</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+                
+                {% if current_path != "/" %}
+                <tr class="hover:bg-slate-50/80 transition group">
+                    <td class="px-6 py-3" colspan="3">
+                        <a href="?p={{ parent_path }}" class="text-sage-600 font-bold flex items-center gap-2 text-sm">
+                            <div class="w-8 h-8 rounded-lg bg-sage-light flex items-center justify-center group-hover:scale-110 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" stroke-width="2"/></svg>
+                            </div>
+                            <span>Eine Ebene höher</span>
+                            <span class="text-slate-300 font-normal ml-2">({{ parent_path }})</span>
+                        </a>
+                    </td>
+                </tr>
+                {% endif %}
+
+                {% for item in items %}
+                <tr class="hover:bg-slate-50 transition group">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-4">
+                            {% if item.type == "dir" %}
+                                <div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500 group-hover:bg-amber-100 transition">
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/></svg>
+                                </div>
+                                <a href="?p={{ item.full_path }}" class="font-bold text-slate-700 hover:text-sage-600 transition">
+                                    {{ item.name }}
+                                </a>
+                            {% else %}
+                                <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500 group-hover:bg-blue-100 transition">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-width="2"/></svg>
+                                </div>
+                                <span class="font-medium text-slate-600">{{ item.name }}</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-right text-sm text-slate-400">
+                        {% if item.type == "file" %}
+                            {{ item.size|filesizeformat }}
+                        {% else %}
+                            <span class="text-[10px] uppercase font-bold tracking-widest text-slate-300">Ordner</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex justify-end gap-2">
+                            
+                            <button onclick="renameItem('{{ item.full_path }}', '{{ item.name }}')" 
+                                    class="p-2.5 bg-slate-50 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition" 
+                                    title="Umbenennen">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-width="2"/>
+                                </svg>
+                            </button>
+
+                            {% if item.type == "file" %}
+                                <button onclick="openEditor('{{ item.view_url }}', '{{ item.name }}')" 
+                                        class="p-2.5 bg-slate-50 text-slate-400 hover:text-sage-600 hover:bg-sage-light rounded-xl transition" 
+                                        title="Im Editor öffnen">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-width="2"/>
+                                        <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke-width="2"/>
+                                    </svg>
+                                </button>
+
+                                <button disabled onclick="deleteItem('{{ item.full_path }}')" 
+                                        class="p-2.5 bg-slate-50 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition" 
+                                        title="Löschen">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2"/>
+                                    </svg>
+                                </button>
+
+                                <a href="{% url 'seafile_drive:download' %}?repo_id={{ repo_id }}&p={{ item.full_path }}" 
+                                class="p-2.5 bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition" 
+                                title="Download">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-width="2"/></svg>
+                                </a>
+                            {% endif %}
+                            
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="px-6 py-20 text-center">
+                        <div class="text-4xl mb-4 opacity-20">📂</div>
+                        <p class="text-slate-400 italic">Dieser Ordner ist noch leer.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-6 p-4 bg-slate-50 rounded-2xl flex items-center gap-3 text-slate-400 text-xs">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2"/></svg>
+        <span>Dateien werden sicher über die Seafile-API von <strong>cloud.netzsprung.de</strong> gestreamt.</span>
+    </div>
+</div>
+
+<div id="editorModal" class="fixed inset-0 z-[100] hidden bg-slate-900/90 backdrop-blur-sm flex-col">
+    <div class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between shadow-sm">
+        <div class="flex items-center gap-3">
+            <span id="modalFileIcon" class="text-xl">📄</span>
+            <h3 id="modalFileName" class="font-bold text-slate-800">Dokument bearbeiten</h3>
+        </div>
+        <button onclick="closeEditor()" class="flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 rounded-xl font-bold hover:bg-rose-100 transition">
+            <span>✕</span> Schließen
+        </button>
+    </div>
+    
+    <div class="flex-grow bg-slate-100 relative">
+        <div id="iframeLoader" class="absolute inset-0 flex items-center justify-center bg-white z-10">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-sage-600"></div>
+        </div>
+        <iframe id="editorIframe" src="" class="w-full h-full border-none" onload="document.getElementById('iframeLoader').style.display='none'"></iframe>
+    </div>
+</div>
+
+
+<script>
+function createNewFile(type) {
+    let name = prompt("Bitte Dateinamen eingeben (ohne Endung):", "Neues Dokument");
+    if (name) {
+        let extension = type === 'docx' ? '.docx' : '.xlsx';
+        // JS Pfad-Logik: Falls wir im Root (/) sind, nur Name anhängen, sonst Slash dazwischen
+        let currentPath = "{{ current_path }}";
+        let fullPath = currentPath.endsWith('/') ? currentPath + name + extension : currentPath + '/' + name + extension;
+        
+        window.location.href = "{% url 'seafile_drive:create_file' %}?p=" + encodeURIComponent(fullPath);
+    }
+}
+
+function renameItem(oldPath, oldName) {
+    let newName = prompt("Neuen Namen eingeben (inkl. Endung):", oldName);
+    if (newName && newName !== oldName) {
+        let url = "{% url 'seafile_drive:rename' %}";
+        // Wir nutzen repo_id aus dem Template-Context
+        window.location.href = `${url}?repo_id={{ repo_id }}&p=${encodeURIComponent(oldPath)}&new_name=${encodeURIComponent(newName)}`;
+    }
+}
+
+
+function openEditor(url, name) {
+    const modal = document.getElementById('editorModal');
+    const iframe = document.getElementById('editorIframe');
+    const fileNameDisplay = document.getElementById('modalFileName');
+    const loader = document.getElementById('iframeLoader');
+
+    // Loader anzeigen, Iframe leeren
+    loader.style.display = 'flex';
+    iframe.src = '';
+    
+    // Daten setzen
+    fileNameDisplay.innerText = name;
+    iframe.src = url;
+
+    // Modal anzeigen & Scrollen auf der Hauptseite verhindern
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeEditor() {
+    const modal = document.getElementById('editorModal');
+    const iframe = document.getElementById('editorIframe');
+    
+    iframe.src = '';
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = 'auto';
+    
+    // Seite neu laden, um aktuelle Dateidaten (Größe/Zeit) anzuzeigen
+    window.location.reload(); 
+}
+
+function createNewFile(type) {
+    let name = prompt("Bitte Dateinamen eingeben (ohne Endung):", "Neues Dokument");
+    if (name) {
+        let extension = type === 'docx' ? '.docx' : '.xlsx';
+        let currentPath = "{{ current_path }}";
+        let fullPath = currentPath.endsWith('/') ? currentPath + name + extension : currentPath + '/' + name + extension;
+        window.location.href = "{% url 'seafile_drive:create_file' %}?p=" + encodeURIComponent(fullPath);
+    }
+}
+
+function renameItem(oldPath, oldName) {
+    let newName = prompt("Neuen Namen eingeben (inkl. Endung):", oldName);
+    if (newName && newName !== oldName) {
+        let url = "{% url 'seafile_drive:rename' %}";
+        window.location.href = `${url}?repo_id={{ repo_id }}&p=${encodeURIComponent(oldPath)}&new_name=${encodeURIComponent(newName)}`;
+    }
+}
+
+function deleteItem(path) {
+    if (confirm("Möchtest du diese Datei/diesen Ordner wirklich unwiderruflich löschen?")) {
+        window.location.href = "{% url 'seafile_drive:delete' %}?repo_id={{ repo_id }}&p=" + encodeURIComponent(path);
+    }
+}
+
+</script>
+
+
+
+
+{% endblock %}

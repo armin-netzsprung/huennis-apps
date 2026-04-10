@@ -1,0 +1,30 @@
+{% load mail_extras %}
+{% for email in emails %}
+<div hx-get="{% url 'mail_hub:ajax_mail_view' email.id %}"
+     hx-target="#preview-content-area" 
+     class="group relative border-b border-slate-100 p-4 hover:bg-white hover:shadow-md transition-all cursor-pointer flex gap-4 {% if not email.is_read %}bg-white{% else %}bg-slate-50/50 opacity-80{% endif %}">
+    
+    {% if not email.is_read %}
+    <div class="absolute left-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-amber-500 rounded-full"></div>
+    {% endif %}
+
+    <div class="shrink-0">
+        <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-xs uppercase">
+            {{ email.from_addr|slice:":1" }}
+        </div>
+    </div>
+
+    <div class="flex-1 min-w-0">
+        <div class="flex justify-between items-start mb-1">
+            <span class="text-xs font-bold truncate text-slate-900">{{ email.from_addr }}</span>
+            <span class="text-[10px] text-slate-400 whitespace-nowrap ml-2">{{ email.date_sent|date:"d. M" }}</span>
+        </div>
+        <h3 class="text-sm {% if not email.is_read %}font-bold text-slate-800{% else %}font-medium text-slate-600{% endif %} truncate mb-1">
+            {{ email.subject|default:"(Kein Betreff)" }}
+        </h3>
+        <p class="text-xs text-slate-400 line-clamp-2">{{ email.search_index_text|truncatechars:100 }}</p>
+    </div>
+</div>
+{% empty %}
+<div class="text-center py-20 text-slate-400 text-sm">Keine Nachrichten gefunden.</div>
+{% endfor %}

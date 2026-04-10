@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% comment %} ./core/templates/core/home.html {% endcomment %}
+
+{% block title %}
+    {% if SITE_IDENTITY == 'office' %}
+        OfficeCentral365 | CRM, Billing & Mail
+    {% elif SITE_IDENTITY == 'netzsprung' %}
+        Netzsprung - Tech Blog | Linux, Python & Web-Dev
+    {% else %}
+        Blick dahinter - Dein Weg zu Achtsamkeit & Resilienz
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-12">
+
+    {% if SITE_IDENTITY == 'office' %}
+        {% include "core/includes/home_office.html" %}
+    {% elif SITE_IDENTITY == 'netzsprung' %}
+        {% include "core/includes/home_netzsprung.html" %}
+    {% else %}
+        {% include "core/includes/home_blick_dahinter.html" %}
+    {% endif %}
+
+</div>
+{% endblock %}
+

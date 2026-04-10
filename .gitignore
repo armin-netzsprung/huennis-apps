@@ -1,0 +1,39 @@
+# === Sensible Daten (NIEMALS EINCHECKEN) ===
+.env
+
+# === Python / Django ===
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+db.sqlite3
+.pytest_cache/
+
+# === Projekt-Spezifische Verzeichnisse (Große Datenmengen) ===
+# Wir ignorieren media komplett, da dort verschlüsselte E-Mails und Uploads liegen
+media/
+# Der Sammelordner für Nginx wird auf dem Server generiert
+staticfiles/
+
+# === Virtuelle Umgebungen ===
+venv/
+env/
+ENV/
+.venv/
+
+# === IDE / Editor Einstellungen ===
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# === Systemdateien ===
+.DS_Store
+Thumbs.db
+
+# === Logs ===
+*.log
+tailwindcss
+# .gitignore Erweiterung
+static/
+

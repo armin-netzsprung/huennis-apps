@@ -1,0 +1,24 @@
+<header id="preview-toolbar" class="h-20 border-b border-slate-200 bg-white flex items-center justify-between px-6 shadow-sm z-30 shrink-0">
+    <div class="flex items-center gap-1.5">
+        <button onclick="submitMailForm()" class="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition shadow-lg">
+            <i data-lucide="send" class="w-4 h-4"></i> Senden
+        </button>
+        <div class="w-px h-8 bg-slate-200 mx-2"></div>
+        <button onclick="document.getElementById('email-attachment-input')?.click()" class="p-2.5 hover:bg-slate-100 rounded-xl text-slate-600 transition" title="Datei anhängen">
+            <i data-lucide="paperclip" class="w-4 h-4"></i>
+        </button>
+        <button class="p-2.5 hover:bg-slate-100 rounded-xl text-slate-600 transition" title="Antworten"><i data-lucide="reply" class="w-4 h-4"></i></button>
+    </div>
+
+    <div class="flex items-center gap-2">
+        <div class="flex bg-slate-100 p-1 rounded-lg mr-4">
+            <button onclick="setLayout('horizontal')" class="p-1.5 rounded-md hover:bg-white hover:shadow-sm transition text-slate-500" title="Liste links">
+                <i data-lucide="columns-2" class="w-4 h-4"></i>
+            </button>
+            <button onclick="setLayout('vertical')" class="p-1.5 rounded-md hover:bg-white hover:shadow-sm transition text-slate-500" title="Liste oben">
+                <i data-lucide="layout-panel-top" class="w-4 h-4"></i>
+            </button>
+        </div>
+        <button class="p-2.5 hover:bg-red-50 rounded-xl text-red-400 transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+    </div>
+</header>

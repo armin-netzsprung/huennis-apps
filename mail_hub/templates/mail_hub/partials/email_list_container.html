@@ -1,0 +1,10 @@
+<header class="h-16 border-b border-slate-100 flex items-center px-4 bg-white sticky top-0 z-20 shrink-0">
+    <h1 class="text-sm font-bold text-slate-800 uppercase tracking-wider italic">{{ current_label }}</h1>
+</header>
+<div id="email-list-container" class="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/30">
+    {% include "mail_hub/partials/email_list.html" %}
+</div>
+
+<script>
+    if (typeof lucide !== 'undefined') { lucide.createIcons(); }
+</script>

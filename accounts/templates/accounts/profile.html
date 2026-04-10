@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<style>
+    /* Styling für die Django-Formularfelder, damit sie in Tailwind sichtbar sind */
+    input[type="text"], input[type="email"], input[type="date"], input[type="tel"], select, textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #e2e8f0; /* slate-200 */
+        border-radius: 0.75rem;     /* rounded-xl */
+        background-color: #f8fafc;  /* slate-50 */
+        margin-top: 0.25rem;
+        outline: none;
+        transition: all 0.2s;
+    }
+    input:focus {
+        border-color: var(--brand-accent);
+        background-color: #ffffff;
+        ring: 2px;
+        ring-color: var(--brand-light);
+    }
+    /* Styling für das Datei-Input (Avatar) */
+    input[type="file"] {
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto my-12 px-4">
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+        
+        <div class="bg-sage-light h-32 flex items-end px-10 relative">
+            <div class="w-24 h-24 bg-white rounded-2xl shadow-md transform translate-y-12 flex items-center justify-center overflow-hidden border-4 border-white">
+                {% if user.avatar %}
+                    <img src="{{ user.avatar.url }}" alt="Avatar" class="w-full h-full object-cover">
+                {% else %}
+                    <span class="text-3xl font-bold accent-sage">{{ user.email|first|upper }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="pt-16 pb-10 px-6 md:px-10">
+            <h1 class="text-3xl font-serif text-slate-800">Mein Profil</h1>
+            <p class="text-slate-500">Verwalte deine persönlichen Daten und System-Einstellungen.</p>
+
+            <form method="post" enctype="multipart/form-data" class="mt-8 space-y-6">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-5">
+                        <h3 class="font-semibold text-slate-700 border-b pb-2 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-width="2"/></svg>
+                            Persönliche Daten
+                        </h3>
+                        
+                        {% for field in form %}
+                            {% if field.name != 'avatar' %}
+                            <div class="flex flex-col">
+                                <label for="{{ field.id_for_label }}" class="text-sm font-semibold text-slate-600 ml-1">
+                                    {{ field.label }}
+                                </label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>
+                                {% endif %}
+                                {% if field.help_text %}
+                                    <p class="text-slate-400 text-[10px] mt-1">{{ field.help_text }}</p>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <div class="space-y-5">
+                        <h3 class="font-semibold text-slate-700 border-b pb-2 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-width="2"/></svg>
+                            Profilbild & System
+                        </h3>
+                        
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                            <label class="block text-sm font-semibold text-slate-600 mb-2">Dein Avatar</label>
+                            {{ form.avatar }}
+                        </div>
+                        
+                        <div class="p-6 bg-slate-900 rounded-2xl text-white shadow-lg">
+                            <div class="flex items-center gap-2 mb-4">
+                                <div class="p-1.5 bg-white/10 rounded-lg">
+                                    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke-width="2"/></svg>
+                                </div>
+                                <h4 class="text-xs font-bold uppercase tracking-widest text-slate-400">System-Integration</h4>
+                            </div>
+                            
+                            <div class="space-y-3">
+                                <div>
+                                    <p class="text-[10px] text-slate-400 uppercase">Seafile Status</p>
+                                    <div class="flex items-center gap-2">
+                                        <span class="h-2 w-2 rounded-full {% if user.seafile_auth_token %}bg-emerald-500{% else %}bg-amber-500{% endif %}"></span>
+                                        <span class="text-sm font-medium">{% if user.seafile_auth_token %}Verbunden{% else %}Nicht konfiguriert{% endif %}</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-slate-400 uppercase">Auth Token</p>
+                                    <code class="text-xs bg-white/10 px-2 py-1 rounded block mt-1 truncate">
+                                        {% if user.seafile_auth_token %}{{ user.seafile_auth_token }}{% else %}---{% endif %}
+                                    </code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row items-center justify-between pt-10 border-t border-slate-100 gap-4">
+                    <p class="text-xs text-slate-400 italic">Letzter Login: {{ user.last_login|date:"d.m.Y H:i" }}</p>
+                    <div class="flex gap-4 w-full md:w-auto">
+                        <a href="{% url 'home' %}" class="flex-1 md:flex-none text-center px-8 py-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition">
+                            Abbrechen
+                        </a>
+                        <button type="submit" class="flex-1 md:flex-none bg-slate-800 text-white px-10 py-3 rounded-xl hover:bg-slate-700 shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5">
+                            Profil speichern
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
