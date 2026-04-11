@@ -62,6 +62,7 @@ def mail_list_view(request):
         current_label = "Nachrichten"
     
     return render(request, 'mail_hub/partials/email_list_container.html', {
+        'account_id': account_id,
         'emails': emails,
         'current_label': current_label
     })
@@ -86,17 +87,24 @@ def mail_detail_view(request, pk):
 
 @login_required
 def mail_compose_view(request):
-    # Wir brauchen eine Account-ID, um zu wissen, von welchem Konto gesendet wird
     account_id = request.GET.get('account_id')
     
-    # Falls keine ID übergeben wurde, nehmen wir das erste verfügbare Konto
+    # 1. ALLE Konten des Users laden (für das Dropdown)
+    all_accounts = MailAccount.objects.filter(user=request.user)
+    
+    # 2. Das aktuell vorausgewählte Konto ermitteln
     if not account_id:
-        account = MailAccount.objects.filter(user=request.user).first()
+        account = all_accounts.first()
     else:
         account = get_object_or_404(MailAccount, id=account_id, user=request.user)
     
+    # Signatur laden (falls du eine hast)
+    signature = MailSignature.objects.filter(account=account, is_default=True).first()
+    
     context = {
-        'current_account': account,  # Damit {{ current_account.id }} im Template funktioniert
+        'current_account': account,   # Bestimmt, welches Konto im Dropdown auf "selected" steht
+        'accounts': all_accounts,     # Die Liste aller Konten für das Dropdown
+        'signature': signature,
     }
     return render(request, 'mail_hub/partials/compose_email.html', context)
 

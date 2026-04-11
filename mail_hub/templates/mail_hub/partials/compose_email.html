@@ -1,9 +1,21 @@
 <div class="p-6 h-full flex flex-col bg-white">
     <form id="email-compose-form" hx-post="{% url 'mail_hub:ajax_mail_send' %}">
-        {% csrf_token %}<input type="hidden" name="account_id" value="{{ current_account.id }}">
+        {% csrf_token %}
+        
         <div class="space-y-4 mb-4">
-            <input type="text" name="to" placeholder="An" class="w-full border-b border-slate-200 py-2 focus:outline-none focus:border-amber-500">
-            <input type="text" name="subject" placeholder="Betreff" class="w-full border-b border-slate-200 py-2 focus:outline-none focus:border-amber-500">
+            <div class="flex items-center border-b border-slate-200 py-2 focus-within:border-amber-500 transition-colors">
+                <span class="text-slate-400 text-sm w-16 font-medium">Von:</span>
+                <select name="account_id" class="w-full focus:outline-none bg-transparent text-slate-700 cursor-pointer">
+                    {% for account in accounts %}
+                        <option value="{{ account.id }}" {% if account.id == current_account.id %}selected{% endif %}>
+                            {{ account.email_address }} {% if account.display_name %}({{ account.display_name }}){% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <input type="text" name="to" placeholder="An" class="w-full border-b border-slate-200 py-2 focus:outline-none focus:border-amber-500 transition-colors">
+            <input type="text" name="subject" placeholder="Betreff" class="w-full border-b border-slate-200 py-2 focus:outline-none focus:border-amber-500 transition-colors">
         </div>
         
         <textarea id="mail-editor" name="content">

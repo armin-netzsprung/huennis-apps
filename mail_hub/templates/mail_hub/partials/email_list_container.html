@@ -4,7 +4,14 @@
 <div id="email-list-container" class="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/30">
     {% include "mail_hub/partials/email_list.html" %}
 </div>
-
+<div id="sidebar-compose-container" hx-swap-oob="true">
+    <button hx-get="{% url 'mail_hub:ajax_mail_compose' %}?account_id={{ account_id|default:accounts.first.id }}" 
+            hx-target="#preview-content-area" 
+            class="w-full flex items-center justify-center gap-2 py-3 px-4 bg-amber-500 hover:bg-amber-600 text-slate-900 rounded-xl font-bold transition shadow-lg">
+        <i data-lucide="plus" class="w-4 h-4"></i> Neu verfassen
+    </button>
+    <script>lucide.createIcons();</script>
+</div>
 <script>
     if (typeof lucide !== 'undefined') { lucide.createIcons(); }
 </script>
