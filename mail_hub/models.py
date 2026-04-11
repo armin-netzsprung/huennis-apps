@@ -30,6 +30,9 @@ class MailAccount(models.Model):
         help_text="z.B. imap.ionos.de oder imap.gmx.net"
     )
 
+    smtp_host = models.CharField(max_length=255, blank=True, help_text="z.B. smtp.ionos.de")
+    smtp_port = models.PositiveIntegerField(default=587)
+
     # OAuth Felder
     client_id = models.CharField(max_length=255, blank=True, help_text="Azure App Client ID")
     authority = models.CharField(max_length=255, default="https://login.microsoftonline.com/common")

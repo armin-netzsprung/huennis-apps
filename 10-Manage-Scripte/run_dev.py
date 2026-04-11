@@ -18,7 +18,7 @@ def get_available_venvs():
         return []
 
 def run_app():
-    os.system('clear')
+    # os.system('clear')
     print("="*45)
     print(" 🚀 OFFICE & BLOG - LOKALER STARTER ")
     print("="*45)
@@ -104,5 +104,15 @@ def run_app():
                 tailwind_proc.kill()
 
 if __name__ == "__main__":
-    run_app()
-    
+    try:
+        run_app()
+    except KeyboardInterrupt:
+        print("\n👋 Beendet durch Nutzer.")
+    except Exception as e:
+        print("\n" + "!"*60)
+        print(" 🔥 KRITISCHER FEHLER BEIM STARTEN DER APP")
+        print("!"*60)
+        import traceback
+        traceback.print_exc() # Das zeigt dir die Zeilennummer im Django-Code!
+        print("!"*60)
+        input("\nDrücke ENTER, um dieses Fenster zu schließen...")    

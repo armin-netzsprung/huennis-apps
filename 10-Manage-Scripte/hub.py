@@ -84,7 +84,7 @@ def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
     while True:
-        os.system('clear')
+        # os.system('clear')
         print("="*60)
         print(f"      🚀 HÜNNIS-BLOG & OFFICECENTRAL MANAGEMENT HUB")
         print("="*60)

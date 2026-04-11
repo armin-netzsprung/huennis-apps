@@ -21,4 +21,9 @@ urlpatterns = [
     path('settings/accounts/add/', views.account_edit, name='account_add'),
     path('settings/accounts/edit/<int:pk>/', views.account_edit, name='account_edit'),
     path('settings/accounts/delete/<int:pk>/', views.account_delete, name='account_delete'),
+    path('ajax/send/', views.mail_send_view, name='ajax_mail_send'),
+
+    path('account/<int:account_id>/setup-ms-complete/', 
+         views.account_setup_microsoft_complete, 
+         name='account_setup_microsoft_complete'), # <-- Dieser Name zählt!
 ]

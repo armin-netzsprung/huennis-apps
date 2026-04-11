@@ -55,12 +55,23 @@ def connect_outlook_account_db(
     web_interactive: bool = False,
 ) -> Tuple[Optional[requests.Session], Optional[Dict]]:
     
+    from django.conf import settings # Lokal importieren für frische Daten
+    import os
+
     scopes = scopes or GRAPH_SCOPES
-    client_id = getattr(settings, 'AZURE_CLIENT_ID', None)
+    
+    # Wir suchen die ID in dieser Reihenfolge: 
+    # 1. DB-Feld, 2. Settings-Variable, 3. Direkt aus der System-Umgebung
+    client_id = (
+        account.client_id or 
+        getattr(settings, 'AZURE_CLIENT_ID', None) or 
+        os.getenv('OFFICE_AZURE_CLIENT_ID')
+    )
+
     authority = getattr(settings, 'AZURE_AUTHORITY', 'https://login.microsoftonline.com/common')
 
     if not client_id:
-        log_event("FEHLER: AZURE_CLIENT_ID fehlt in settings.py")
+        log_event("FEHLER: Keine Client ID gefunden (Settings & ENV geprüft)")
         return None, None
 
     # 1. Bestehendes Token prüfen
@@ -82,23 +93,57 @@ def connect_outlook_account_db(
             return sess, None
 
     # 3. Wenn Interaktiv (für das User-Frontend)
+# 3. Wenn Interaktiv (für das User-Frontend)
     if web_interactive:
-        flow = app.initiate_device_flow(scopes=scopes)
-        if "user_code" not in flow:
-            log_event(f"Device-Flow Start fehlgeschlagen: {flow}")
-            return None, None
+        print(f"DEBUG: MSAL Request startet...")
+        print(f"DEBUG: Scopes: {scopes}")
         
-        return None, flow # Wir geben den ganzen Flow zurück
+        try:
+            flow = app.initiate_device_flow(scopes=scopes)
+            
+            if flow and "user_code" in flow:
+                print(f"✅ SUCCESS: Flow erhalten! Code ist: {flow['user_code']}")
+                return None, flow
+            else:
+                # DAS HIER IST DIE ENTSCHEIDENDE STELLE
+                print("\n" + "!"*30)
+                print(f"❌ MSAL FEHLER ANTWORT: {flow}")
+                print("!"*30 + "\n")
+                log_event(f"Device-Flow Start fehlgeschlagen: {flow}")
+                return None, None
+                
+        except Exception as e:
+            print(f"❌ KRITISCHER FEHLER BEIM MSAL AUFRUF: {str(e)}")
+            return None, None
+
+    return None, None
+
 
     return None, None
 
 def complete_device_flow_for_account(account: MailAccount, flow: dict) -> Tuple[Optional[requests.Session], dict]:
-    client_id = getattr(settings, 'AZURE_CLIENT_ID', None)
+    from django.conf import settings
+    import os
+    
+    # Identische Logik wie beim Starten des Flows
+    client_id = (
+        account.client_id or 
+        getattr(settings, 'AZURE_CLIENT_ID', None) or 
+        os.getenv('OFFICE_AZURE_CLIENT_ID')
+    )
+
     authority = getattr(settings, 'AZURE_AUTHORITY', 'https://login.microsoftonline.com/common')
     
+    # DEBUG-Print hinzufügen, um sicherzugehen
+    print(f"DEBUG COMPLETE: Nutze Client ID {client_id}")
+    
+    if not client_id:
+        return None, {"error": "no_client_id", "error_description": "Client ID in complete_flow nicht gefunden"}
+
+    # WICHTIG: Die App braucht die Client ID!
     app = msal.PublicClientApplication(client_id=client_id, authority=authority)
     
-    # Dies blockiert NICHT ewig, wenn der Flow abgelaufen ist
+    # Den Code bei Microsoft einlösen
     res = app.acquire_token_by_device_flow(flow)
     
     if "access_token" in res:
@@ -107,6 +152,8 @@ def complete_device_flow_for_account(account: MailAccount, flow: dict) -> Tuple[
         sess.headers.update({"Authorization": f"Bearer {res['access_token']}"})
         return sess, res
     
+    # Wenn es schiefgeht, sehen wir hier das Resultat (den AADSTS Fehler)
+    print(f"❌ MSAL ERROR BEIM ABSCHLUSS: {res}")
     return None, res
 
 def run_oauth_step_by_step(account):

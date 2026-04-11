@@ -1,0 +1,32 @@
+<div hx-swap-oob="afterbegin:#toast-container">
+    <div id="last-toast" class="flex items-center gap-3 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl border border-slate-700 animate-in fade-in slide-in-from-top-4 duration-300">
+        <div class="bg-emerald-500/20 p-2 rounded-lg">
+            <i data-lucide="check-circle" class="w-5 h-5 text-emerald-400"></i>
+        </div>
+        <div>
+            <p class="text-xs font-bold">Erfolgreich versendet</p>
+            <p class="text-[10px] text-slate-400">Die Nachricht wurde übertragen.</p>
+        </div>
+        <button onclick="this.closest('#last-toast').remove()" class="ml-auto text-slate-500 hover:text-white transition">
+            <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+    </div>
+</div>
+
+<script>
+    lucide.createIcons();
+    
+    // Editor leeren
+    if (tinymce.get('mail-editor')) {
+        tinymce.get('mail-editor').setContent('');
+    }
+
+    // Nach 5 Sek entfernen
+    setTimeout(() => {
+        const t = document.getElementById('last-toast');
+        if (t) {
+            t.id = ''; // ID entfernen, damit der nächste Toast nicht kollidiert
+            t.remove();
+        }
+    }, 5000);
+</script>

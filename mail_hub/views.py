@@ -1,5 +1,8 @@
-from pyexpat.errors import messages
+# mail_hub/views.py
+from django.http import HttpResponse
 
+from .services.mail_sender import send_mail_auto
+from django.contrib import messages
 from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -8,6 +11,10 @@ from .models import FetchedEmail, MailAccount, MailSignature
 from mail_hub.services.mail_parser import get_mail_content
 # mail_hub/views.py hinzufügen:
 from .services.oauth_outlook_device import connect_outlook_account_db, complete_device_flow_for_account
+# WICHTIG: Den Service als Ganzes importieren, damit wir den Pfad prüfen können
+import mail_hub.services.oauth_outlook_device as oauth_service
+
+print(f"DEBUG: Service Pfad: {oauth_service.__file__}")
 
 # --- HELFER ---
 def get_base_context(user):
@@ -79,19 +86,33 @@ def mail_detail_view(request, pk):
 
 @login_required
 def mail_compose_view(request):
-    """AJAX: Liefert den Editor zum Verfassen einer Mail."""
-    sig = MailSignature.objects.filter(user=request.user, is_default=True).first()
-    return render(request, 'mail_hub/partials/compose_email.html', {'signature': sig})
+    # Wir brauchen eine Account-ID, um zu wissen, von welchem Konto gesendet wird
+    account_id = request.GET.get('account_id')
+    
+    # Falls keine ID übergeben wurde, nehmen wir das erste verfügbare Konto
+    if not account_id:
+        account = MailAccount.objects.filter(user=request.user).first()
+    else:
+        account = get_object_or_404(MailAccount, id=account_id, user=request.user)
+    
+    context = {
+        'current_account': account,  # Damit {{ current_account.id }} im Template funktioniert
+    }
+    return render(request, 'mail_hub/partials/compose_email.html', context)
 
-@login_required
-@require_POST
-def mail_send_view(request):
-    """Verarbeitet den SMTP-Versand."""
-    # Logik für den Versand folgt hier
-    return render(request, 'mail_hub/partials/send_success_toast.html')
+# @login_required
+# @require_POST
+# def mail_send_view(request):
+#     account_id = request.POST.get('account_id')
+    
+#     if not account_id or account_id == '':
+#         # Fehlerbehandlung, falls die ID fehlt
+#         return HttpResponse("Fehler: Keine Account-ID übergeben.", status=400)
 
-# mail_hub/views.py (Theoretische Struktur)
-
+#     # Jetzt ist sicher, dass account_id eine Zahl (als String) ist
+#     account = get_object_or_404(MailAccount, id=account_id, user=request.user)
+    
+    
 @login_required
 def account_list(request):
     # Zeigt dem User seine Konten an
@@ -106,19 +127,35 @@ def account_add_imap(request):
         pass
     return render(request, 'mail_hub/settings/form_imap.html')
 
+
+# In views.py innerhalb von account_setup_microsoft
+
+
 @login_required
 def account_setup_microsoft(request, account_id):
+    # 1. Jetzt wird 'account' definiert!
     account = get_object_or_404(MailAccount, id=account_id, user=request.user)
+
+    # 2. Jetzt funktionieren auch die Prints, weil wir innerhalb der Funktion sind
+    print("\n" + "="*40)
+    print(f"DEBUG: Service Pfad: {oauth_service.__file__}")
+    print(f"DEBUG: Rufe jetzt connect_outlook_account_db auf für Account: {account.id}")
     
-    # Hier nutzen wir DEINE Funktion:
-    # web_interactive=True sorgt dafür, dass wir den Device-Flow-Code zurückbekommen
-    session, flow_data = connect_outlook_account_db(account, web_interactive=True)
+    # 3. Den Service aufrufen
+    session, flow_data = oauth_service.connect_outlook_account_db(account, web_interactive=True)
+    # Wir löschen das alte Token in der DB, um einen sauberen Neustart zu erzwingen
+    account.oauth_access_token = None
+    account.oauth_refresh_token = None
+    account.save()
+
+    # Jetzt den Service aufrufen
+    session, flow_data = oauth_service.connect_outlook_account_db(account, web_interactive=True)
     
-    # Wenn session None ist, aber flow_data gefüllt, läuft der Device Flow
+    print(f"DEBUG: Rückgabe erhalten: {bool(flow_data)}")
+    print("="*40 + "\n")
+
     if flow_data and "user_code" in flow_data:
-        # Den Flow für den zweiten Schritt in der Session speichern
         request.session[f'ms_flow_{account.id}'] = flow_data
-        
         return render(request, 'mail_hub/settings/microsoft_code.html', {
             'account': account,
             'url': flow_data.get("verification_uri"),
@@ -128,7 +165,7 @@ def account_setup_microsoft(request, account_id):
     else:
         messages.error(request, "Konnte den Microsoft-Login nicht starten.")
         return redirect('mail_hub:dashboard')
-
+    
 @login_required
 def complete_ms_flow(request, account_id):
     account = get_object_or_404(MailAccount, id=account_id, user=request.user)
@@ -188,3 +225,50 @@ def account_delete(request, pk):
     if request.method == 'POST':
         account.delete()
     return redirect('mail_hub:account_list')
+
+@login_required
+@require_POST
+def account_setup_microsoft_complete(request, account_id):
+    account = get_object_or_404(MailAccount, id=account_id, user=request.user)
+    
+    # Hol den gespeicherten Flow aus der Session
+    flow = request.session.get(f'ms_flow_{account.id}')
+    
+    if not flow:
+        messages.error(request, "Sitzung abgelaufen oder kein aktiver Login-Prozess gefunden.")
+        return redirect('mail_hub:dashboard')
+        
+    # Jetzt den zweiten Teil des Device-Flows ausführen
+    session, result = complete_device_flow_for_account(account, flow)
+    
+    if session:
+        messages.success(request, f"Konto {account.email_address} wurde erfolgreich verknüpft!")
+        # Den Flow aus der Session löschen, da er verbraucht ist
+        del request.session[f'ms_flow_{account.id}']
+    else:
+        # Hier geben wir die Fehlermeldung von Microsoft aus, falls vorhanden
+        error_msg = result.get('error_description', 'Unbekannter Fehler beim Abschluss des Logins.')
+        messages.error(request, f"Login fehlgeschlagen: {error_msg}")
+        
+    return redirect('mail_hub:dashboard')
+
+
+@login_required
+@require_POST
+def mail_send_view(request):
+    account_id = request.POST.get('account_id')
+    recipient = request.POST.get('to')
+    subject = request.POST.get('subject')
+    content = request.POST.get('content')
+
+    account = get_object_or_404(MailAccount, id=account_id, user=request.user)
+
+    # Die universelle Sende-Funktion aufrufen
+    from .services.mail_sender import send_mail_auto
+    success, message = send_mail_auto(account, subject, recipient, content)
+
+    if success:
+        return render(request, 'mail_hub/partials/send_success_toast.html', {'msg': message})
+    else:
+        return render(request, 'mail_hub/partials/send_error_toast.html', {'error': message})
+    

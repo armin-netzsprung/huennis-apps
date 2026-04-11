@@ -55,6 +55,7 @@ USE_TZ = True
 # ==============================================================================
 # 2. IDENTITÄTS-LOGIK (Speziell pro Site)
 # ==============================================================================
+AZURE_CLIENT_ID = os.getenv('OFFICE_AZURE_CLIENT_ID')
 
 if SITE_IDENTITY == 'office':
     ALLOWED_HOSTS = ['officecentral365.netzsprung.de', 'officecentral365.com', 'localhost', '127.0.0.1']

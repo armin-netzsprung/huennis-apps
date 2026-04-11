@@ -5,7 +5,8 @@
         <span class="tracking-tight uppercase font-black">MAILHUB</span>
     </div>
     
-    <button hx-get="{% url 'mail_hub:ajax_mail_compose' %}" 
+
+    <button hx-get="{% url 'mail_hub:ajax_mail_compose' %}?account_id={{ active_account.id }}" 
             hx-target="#preview-content-area" 
             class="w-full flex items-center justify-center gap-2 py-3 px-4 bg-amber-500 hover:bg-amber-600 text-slate-900 rounded-xl font-bold transition shadow-lg">
         <i data-lucide="plus" class="w-4 h-4"></i> Neu verfassen
