@@ -77,7 +77,54 @@ def run_full_backup(script_dir):
         print(f"\n❌ Fehler beim Backup: {e}")
     
     input("\nDrücke Enter zum Fortfahren...")
+
+def run_gemini_backup(script_dir):
+    """Erstellt ein schlankes Backup ohne venv, media, staticfiles für den KI-Upload."""
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
+    backup_filename = f"GEMINI-UPLOAD_{timestamp}.tar.gz"
     
+    project_root = os.path.abspath(os.path.join(script_dir, ".."))
+    dev_dir = os.path.abspath(os.path.join(project_root, ".."))
+    target_base = os.path.join(dev_dir, "90-Backup", "huennis-blog")
+    
+    if not os.path.exists(target_base):
+        os.makedirs(target_base, exist_ok=True)
+        
+    target_path = os.path.join(target_base, backup_filename)
+    project_folder_name = os.path.basename(project_root)
+    
+    # Diese Ordner/Dateien werden für die KI ignoriert
+    # Diese Ordner/Dateien werden für die KI ignoriert
+    excludes = [
+        "--exclude=venv*",
+        "--exclude=.venv*",        # Falls die Umgebung mit Punkt anfängt
+        "--exclude=__pycache__",
+        "--exclude=*.pyc",
+        "--exclude=.git",
+        "--exclude=.idea",         # PyCharm Cache
+        "--exclude=.vscode",       # VS Code Cache
+        "--exclude=media",
+        "--exclude=staticfiles",
+        "--exclude=db.sqlite3",
+        "--exclude=node_modules",  # Der häufigste Übeltäter!
+        "--exclude=*.log",
+        "--exclude=*.sql",
+        "--exclude=tailwindcss",
+        "--exclude=static/tinymce" # Kann ignoriert werden, da es Standard-Code ist
+    ]
+    
+    # tar Befehl zusammensetzen (-C sorgt dafür, dass die Ordnerstruktur relativ bleibt)
+    cmd = ["tar", "-czf", target_path] + excludes + ["-C", dev_dir, project_folder_name]
+    
+    print(f"\n🤖 Erstelle Gemini-optimiertes Backup...")
+    try:
+        subprocess.run(cmd, check=True)
+        print(f"\033[92m✔ Gemini-Backup erfolgreich erstellt!\033[0m")
+        print(f"📁 Datei: {target_path}")
+        print("💡 Diese Datei kannst du jetzt direkt ins Chat-Fenster ziehen.")
+    except subprocess.CalledProcessError as e:
+        print(f"\033[91m✖ Fehler beim Erstellen des Backups: {e}\033[0m")
+
 def main():
     env_label, is_dev = get_env_info()
     # Das Verzeichnis, in dem dieses Script liegt (~/dev/huennis-blog)
@@ -97,6 +144,7 @@ def main():
         print(f" [3] Python-Admin     -> Versionen & Umgebungen")
         print(f" [4] DB-Manager       -> Backups & Restore (SQL)")
         print(f" [5] 📦 FULL BACKUP   -> DEV! Gesamten Sourcecode sichern (nach ../90-Backup)")
+        print(f" [6] 🤖 GEMINI BACKUP -> Code für KI-Upload (ohne venv, db, media...)")
 
         print("\n [q] Beenden")
         print("-" * 60)
@@ -113,6 +161,8 @@ def main():
 
         if choice == "5":
             run_full_backup(script_dir)
+        elif choice == "6":
+            run_gemini_backup(script_dir)
         elif choice in mapping:
             cmd = mapping[choice]
             script_path = os.path.join(script_dir, cmd[1])

@@ -63,7 +63,7 @@ if SITE_IDENTITY == 'office':
     DB_USER = os.getenv('OFFICE_DB_USER')
     
     # Spezifische Apps
-    INSTALLED_APPS += ['crm', 'seafile_drive', 'mail_hub']
+    INSTALLED_APPS += ['crm', 'seafile_drive', 'mail_hub', 'erp']
     
     # Mail Hub Secrets
     AZURE_CLIENT_ID = os.getenv('OFFICE_AZURE_CLIENT_ID')

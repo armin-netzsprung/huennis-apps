@@ -1,0 +1,16 @@
+{% if messages %}
+<div id="message-container" 
+     class="max-w-md mx-auto mt-4 px-4 fixed top-4 left-1/2 transform -translate-x-1/2 z-[200] w-full"
+     hx-get="{% url 'erp:clear_messages' %}" 
+     hx-trigger="load delay:3s" 
+     hx-swap="outerHTML">
+    {% for message in messages %}
+    <div class="p-4 rounded-2xl shadow-lg border flex items-center gap-3 animate-bounce-in
+        {% if message.tags == 'error' %}bg-red-50 border-red-200 text-red-700{% else %}bg-emerald-50 border-emerald-200 text-emerald-700{% endif %}">
+        <span class="text-xl">{% if message.tags == 'error' %}🚫{% else %}✅{% endif %}</span>
+        <p class="text-sm font-bold">{{ message }}</p>
+        <button onclick="this.parentElement.remove()" class="ml-auto text-current opacity-50 hover:opacity-100">✕</button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}

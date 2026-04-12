@@ -51,18 +51,9 @@
 </head>
 
 <body class="site-{{ SITE_IDENTITY }} min-h-screen flex flex-col font-sans">
-    {% if messages %}
-    <div class="max-w-md mx-auto mt-4 px-4 fixed top-4 left-1/2 transform -translate-x-1/2 z-[200] w-full">
-        {% for message in messages %}
-        <div class="p-4 rounded-2xl shadow-lg border flex items-center gap-3 animate-bounce-in
-            {% if message.tags == 'error' %}bg-red-50 border-red-200 text-red-700{% else %}bg-emerald-50 border-emerald-200 text-emerald-700{% endif %}">
-            <span>{% if message.tags == 'error' %}🚫{% else %}✅{% endif %}</span>
-            <p class="text-sm font-bold">{{ message }}</p>
-            <button onclick="this.parentElement.remove()" class="ml-auto text-current opacity-50 hover:opacity-100">✕</button>
-        </div>
-        {% endfor %}
+    <div id="messages-wrapper">
+    {% include 'includes/messages.html' %}
     </div>
-    {% endif %}
 
     {% if SITE_IDENTITY %}
     <div class="fixed top-0 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2 px-3 py-1 rounded-b-xl shadow-md border-x border-b text-[10px] font-bold uppercase tracking-widest

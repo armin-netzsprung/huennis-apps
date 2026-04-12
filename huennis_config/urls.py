@@ -32,6 +32,12 @@ if 'crm' in settings.INSTALLED_APPS:
         path('mail/', include('mail_hub.urls')),
     ]
 
+if 'erp' in settings.INSTALLED_APPS:
+    urlpatterns += [
+        path('erp/', include('erp.urls')),
+    ]
+
+
 # --- STATISCHE DATEIEN ---
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

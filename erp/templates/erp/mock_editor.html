@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<script src="{% static 'tinymce/tinymce.min.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        tinymce.init({
+            selector: '.tinymce-editor',
+            license_key: 'gpl', 
+            menubar: false,
+            statusbar: false,
+            plugins: 'lists link autolink charmap',
+            toolbar: 'undo redo | bold italic | bullist numlist | removeformat',
+            height: 250,
+            branding: false,
+            promotion: false,
+            setup: function (editor) {
+                // WICHTIG für HTMX: TinyMCE muss Änderungen zurück in die Textarea schreiben
+                editor.on('change', function () {
+                    editor.save();
+                });
+            }
+        });
+    });
+</script>
+<style>
+    /* Sorgt dafür, dass der Editor sich optisch schön in die Cards einfügt */
+    .tox-tinymce {
+        border: none !important;
+        border-radius: 0 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<form id="document-form" 
+      hx-post="{% url 'erp:save_basics' doc.id %}" 
+      hx-target="#messages-wrapper" 
+      hx-swap="innerHTML">
+    {% csrf_token %}
+    
+    <div class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
+        
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+            <div>
+                <div class="flex items-center gap-3 mb-1">
+                    <span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-lg uppercase tracking-wider">
+                        {{ doc.get_status_display }}
+                    </span>
+                    <h1 class="text-2xl font-black text-slate-800">{{ doc_type }} {{ doc_number }}</h1>
+                </div>
+                <p class="text-sm text-slate-500">Erstellt am {{ doc_date|date:"d. F Y" }}</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <div id="save-status" class="text-sm font-bold text-emerald-600 mr-4"></div>
+
+                <button type="button" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 transition shadow-sm flex items-center gap-2">
+                    <i data-lucide="printer" class="w-4 h-4"></i> Vorschau
+                </button>
+                
+                <button type="submit" 
+                        onclick="tinymce.triggerSave();"
+                        class="px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition shadow-md flex items-center gap-2">
+                    <i data-lucide="check" class="w-4 h-4"></i> Speichern & Schließen
+                </button>
+            </div>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-6 lg:gap-8">
+            
+            <div class="flex-1 space-y-6">
+                
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Empfänger</h2>
+                        <button type="button" class="text-amber-500 hover:text-amber-600 text-sm font-semibold flex items-center gap-1 transition">
+                            <i data-lucide="edit-2" class="w-3 h-3"></i> Ändern
+                        </button>
+                    </div>
+                    <div class="text-slate-800 leading-relaxed">
+                        <p class="font-black text-lg">{{ customer }}</p> 
+                        {% with customer.addresses.all|first as addr %}
+                            <p class="text-sm mt-1">{{ addr.street }} {{ addr.street_extra }}</p>
+                            <p class="text-sm">{{ addr.zip_code }} {{ addr.city }}</p>
+                            <p class="text-sm text-slate-500 mt-1">{{ addr.country }}</p>
+                        {% endwith %}
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden focus-within:border-amber-500 transition-colors">
+                    <div class="p-3 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                        <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Einleitungstext</h2>
+                    </div>
+                    <div class="p-0"> 
+                        <textarea name="intro_text" class="tinymce-editor">
+                            {{ intro_text|safe }}
+                        </textarea>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                        <h2 class="text-sm font-bold text-slate-600 uppercase tracking-wider">Positionen</h2>
+                    </div>
+                    
+                    <div class="p-0">
+                        <div class="hidden sm:grid grid-cols-12 gap-4 p-4 text-xs font-semibold text-slate-400 border-b border-slate-100">
+                            <div class="col-span-1">Pos</div>
+                            <div class="col-span-4">Bezeichnung</div>
+                            <div class="col-span-1 text-center">Steuer</div>
+                            <div class="col-span-2 text-right">Menge</div>
+                            <div class="col-span-2 text-right">Rabatt</div>
+                            <div class="col-span-2 text-right">Gesamt (Netto)</div>
+                        </div>
+
+                        {% for item in items %}
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-4 p-4 items-center border-b border-slate-50 hover:bg-slate-50 transition group">
+                            <div class="col-span-1 hidden sm:block text-sm text-slate-400">{{ item.position }}</div>
+                            
+                            <div class="col-span-12 sm:col-span-4">
+                                <p class="font-bold text-slate-800 text-sm">{{ item.title }}</p>
+                                <p class="text-[10px] text-slate-400 mt-0.5">
+                                    Einzelpreis: {{ item.unit_price|floatformat:2 }} € 
+                                    {% if item.unit %}/ {{ item.unit.abbreviation|default:item.unit.name }}{% endif %}
+                                </p>
+                            </div>
+                            
+                            <div class="col-span-1 text-left sm:text-center mt-2 sm:mt-0">
+                                <select name="item_{{ item.id }}_tax" class="text-xs border border-slate-200 rounded p-1 text-slate-600 focus:outline-none focus:border-amber-500 bg-white">
+                                    <option value="19" {% if item.tax_rate == 19 %}selected{% endif %}>19%</option>
+                                    <option value="7" {% if item.tax_rate == 7 %}selected{% endif %}>7%</option>
+                                    <option value="0" {% if item.tax_rate == 0 %}selected{% endif %}>0%</option>
+                                </select>
+                            </div>
+
+                            <div class="col-span-2 text-right text-sm text-slate-600 mt-2 sm:mt-0">
+                                <input type="number" name="item_{{ item.id }}_qty" step="0.01" value="{{ item.quantity|stringformat:'f' }}" 
+                                    class="w-20 text-right border border-slate-200 rounded p-1 text-sm bg-white focus:outline-none focus:border-amber-500">
+                            </div>
+                                
+                            <div class="col-span-2 text-right mt-2 sm:mt-0 flex items-center justify-start sm:justify-end gap-1">
+                                <input type="number" 
+                                    name="item_{{ item.id }}_discount"
+                                    value="{{ item.discount_percentage|stringformat:'f' }}" 
+                                    min="0" max="100" step="0.1"
+                                    class="w-16 text-right border rounded p-1 text-sm focus:outline-none focus:border-amber-500 transition-colors
+                                            {% if item.discount_percentage > 0 %}
+                                                bg-red-50 text-red-600 font-bold border-red-200
+                                            {% else %}
+                                                bg-white text-slate-600 border-slate-200
+                                            {% endif %}">
+                                <span class="text-xs font-bold {% if item.discount_percentage > 0 %}text-red-500{% else %}text-slate-400{% endif %}">%</span>
+                            </div>
+                                
+                            <div class="col-span-2 text-left sm:text-right font-semibold text-slate-800 mt-2 sm:mt-0">
+                                {{ item.net_total|floatformat:2 }} €
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="p-4 bg-white">
+                        <button type="button" class="w-full py-3 border-2 border-dashed border-slate-200 text-slate-500 rounded-xl font-semibold hover:border-amber-400 hover:text-amber-500 transition flex items-center justify-center gap-2">
+                            <i data-lucide="plus-circle" class="w-5 h-5"></i> Neue Position hinzufügen
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden focus-within:border-amber-500 transition-colors">
+                    <div class="p-3 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                        <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Schlusstext</h2>
+                    </div>
+                    <div class="p-0">
+                        <textarea name="outro_text" class="tinymce-editor">
+                            {{ outro_text|safe }}
+                        </textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full lg:w-80 shrink-0 space-y-6">
+                
+                <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-lg">
+                    <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Zusammenfassung</h2>
+                    
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between items-center text-slate-400">
+                            <span>Zwischensumme</span>
+                            <span>{{ subtotal|floatformat:2 }} €</span>
+                        </div>
+                        
+                        {% if global_discount_pct > 0 %}
+                        <div class="flex justify-between items-center text-red-400">
+                            <span>Rabatt ({{ global_discount_pct }}%)</span>
+                            <span>- {{ global_discount_amount|floatformat:2 }} €</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="flex justify-between items-center pt-2 border-t border-slate-700">
+                            <span class="text-slate-300">Netto gesamt</span>
+                            <span>{{ net_total|floatformat:2 }} €</span>
+                        </div>
+                        
+                        <div class="py-2 border-b border-slate-700 space-y-1">
+                            {% for tax in taxes %}
+                            <div class="flex justify-between items-center text-slate-300 text-xs">
+                                <span>zzgl. {{ tax.label }}</span>
+                                <span>{{ tax.amount|floatformat:2 }} €</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="flex justify-between items-center text-xl font-black pt-1 text-emerald-400">
+                            <span>Brutto</span>
+                            <span>{{ gross_total|floatformat:2 }} €</span>
+                        </div>
+
+                        {% if skonto_pct > 0 %}
+                        <div class="mt-4 p-3 bg-slate-800/50 rounded-xl border border-slate-700">
+                            <p class="text-xs text-amber-400 font-semibold mb-1">Skonto verfügbar</p>
+                            <p class="text-[10px] text-slate-400 leading-relaxed">
+                                Bei Zahlung innerhalb von {{ skonto_days }} Tagen gewähren wir <strong>{{ skonto_pct }}% Skonto</strong> (-{{ skonto_amount|floatformat:2 }} €). 
+                                <br>Zahlbetrag: <strong>{{ skonto_payable_amount|floatformat:2 }} €</strong>
+                            </p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Einstellungen</h2>
+                    <div class="space-y-4">
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">Zahlungsziel</label>
+                            <input type="text" name="due_date" value="{{ due_date|date:'Y-m-d' }}" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">Gesamtrabatt (%)</label>
+                            <input type="number" name="global_discount_pct" step="0.1" value="{{ global_discount_pct|stringformat:'f' }}" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 mb-1">Skonto (%)</label>
+                                <input type="number" name="skonto_pct" step="0.1" value="{{ skonto_pct|stringformat:'f' }}" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 mb-1">Tage</label>
+                                <input type="number" name="skonto_days" value="{{ skonto_days }}" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500">
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                            <label class="text-sm font-semibold text-slate-700">Kleinunternehmer (0%)</label>
+                            <div class="w-10 h-6 bg-slate-200 rounded-full flex items-center px-1 cursor-pointer">
+                                <input type="checkbox" name="is_small_business" {% if doc.is_small_business %}checked{% endif %} class="sr-only">
+                                <div class="w-4 h-4 bg-white rounded-full shadow-sm {% if doc.is_small_business %}translate-x-4{% endif %} transition"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div> 
+    </div>
+</form>
+
+<script>
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>
+{% endblock %}

@@ -22,14 +22,14 @@
         </p>
     </a>
 
-    <a href="/billing/" class="group bg-white border border-slate-200 p-8 rounded-3xl shadow-sm hover:border-emerald-400 hover:shadow-md transition-all">
-        <div class="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition">📄</div>
-        <h3 class="text-xl font-bold text-slate-800 mb-2">Fakturierung</h3>
+    <a href="{% url 'erp:dashboard' %}" class="group bg-white border border-slate-200 p-8 rounded-3xl shadow-sm hover:border-emerald-400 hover:shadow-md transition-all">
+        <div class="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition">📊</div>
+        <h3 class="text-xl font-bold text-slate-800 mb-2">ERP & Faktura</h3>
         <p class="text-slate-500 text-sm leading-relaxed">
-            Erstelle professionelle Angebote und Rechnungen. Behalte offene Posten und Zahlungseingänge im Griff.
+            Verwalte den gesamten Prozess von Angeboten bis zur Rechnung. Behalte offene Vorgänge und Umsätze im Blick.
         </p>
     </a>
-
+    
     <a href="{% url 'mail_hub:dashboard' %}" class="group bg-white border border-slate-200 p-8 rounded-3xl shadow-sm hover:border-blue-400 hover:shadow-md transition-all">    <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition">✉️</div>
         <h3 class="text-xl font-bold text-slate-800 mb-2">Mail-Client</h3>
         <p class="text-slate-500 text-sm leading-relaxed">

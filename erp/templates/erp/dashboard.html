@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
+    
+    <div class="mb-8">
+        <h1 class="text-3xl font-black text-slate-800">ERP Dashboard</h1>
+        <p class="text-slate-500">Zentrale Verwaltung deiner Geschäftsvorgänge.</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+        <button class="flex items-center gap-4 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm hover:border-amber-400 hover:shadow-md transition group text-left">
+            <div class="w-12 h-12 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition">✉️</div>
+            <div>
+                <span class="block font-bold text-slate-800">Angebot</span>
+                <span class="text-xs text-slate-400">Neu erstellen</span>
+            </div>
+        </button>
+
+        <button class="flex items-center gap-4 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm hover:border-blue-400 hover:shadow-md transition group text-left">
+            <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition">📝</div>
+            <div>
+                <span class="block font-bold text-slate-800">Bestätigung</span>
+                <span class="text-xs text-slate-400">Auftrag anlegen</span>
+            </div>
+        </button>
+
+        <button class="flex items-center gap-4 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm hover:border-slate-400 hover:shadow-md transition group text-left">
+            <div class="w-12 h-12 bg-slate-50 text-slate-500 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition">📦</div>
+            <div>
+                <span class="block font-bold text-slate-800">Lieferschein</span>
+                <span class="text-xs text-slate-400">Versand vorbereiten</span>
+            </div>
+        </button>
+
+        <button class="flex items-center gap-4 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm hover:border-emerald-400 hover:shadow-md transition group text-left">
+            <div class="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition">💰</div>
+            <div>
+                <span class="block font-bold text-slate-800">Rechnung</span>
+                <span class="text-xs text-slate-400">Faktura erstellen</span>
+            </div>
+        </button>
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <h2 class="font-bold text-slate-800 flex items-center gap-2">
+                <i data-lucide="list" class="w-5 h-5 text-slate-400"></i>
+                Offene Vorgänge
+            </h2>
+            <span class="text-xs font-medium bg-slate-100 text-slate-500 px-3 py-1 rounded-full">{{ documents|length }} Vorgänge</span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                        <th class="p-4">Art</th>
+                        <th class="p-4">Nummer</th>
+                        <th class="p-4">Kunde</th>
+                        <th class="p-4">Datum</th>
+                        <th class="p-4 text-right">Summe (Brutto)</th>
+                        <th class="p-4">Status</th>
+                        <th class="p-4 text-center">Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    {% for doc in documents %}
+                    <tr class="hover:bg-slate-50 transition group">
+                        <td class="p-4">
+                            <span class="px-2 py-1 rounded-lg text-[10px] font-bold uppercase
+                                {% if doc.document_type == 'AN' %}bg-amber-100 text-amber-700
+                                {% elif doc.document_type == 'AB' %}bg-blue-100 text-blue-700
+                                {% elif doc.document_type == 'RE' %}bg-emerald-100 text-emerald-700
+                                {% else %}bg-slate-100 text-slate-700{% endif %}">
+                                {{ doc.get_document_type_display }}
+                            </span>
+                        </td>
+                        <td class="p-4 font-bold text-slate-700 text-sm">{{ doc.document_number }}</td>
+                        <td class="p-4 text-sm text-slate-600">{{ doc.customer }}</td>
+                        <td class="p-4 text-sm text-slate-500">{{ doc.document_date|date:"d.m.Y" }}</td>
+                        <td class="p-4 text-sm font-bold text-slate-800 text-right">{{ doc.gross_total|floatformat:2 }} €</td>
+                        <td class="p-4 text-sm">
+                            <span class="flex items-center gap-1.5 text-slate-500">
+                                <span class="w-2 h-2 rounded-full bg-amber-400"></span> {{ doc.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="p-4">
+                            <div class="flex items-center justify-center gap-2">
+                                <a href="{% url 'erp:document_edit' doc.id %}" title="Bearbeiten" 
+                                class="p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-amber-500 hover:text-white transition shadow-sm">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </a>
+
+                                {% if doc.document_type == 'AN' %}
+                                    <button title="In Auftragsbestätigung wandeln" class="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition shadow-sm">
+                                        <i data-lucide="file-check" class="w-4 h-4"></i>
+                                    </button>
+                                    <button title="In Rechnung wandeln" class="p-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-600 hover:text-white transition shadow-sm">
+                                        <i data-lucide="file-text" class="w-4 h-4"></i>
+                                    </button>
+                                {% elif doc.document_type == 'AB' %}
+                                    <button title="In Rechnung wandeln" class="p-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-600 hover:text-white transition shadow-sm">
+                                        <i data-lucide="file-text" class="w-4 h-4"></i>
+                                    </button>
+                                {% endif %}
+                                
+                                <button title="Stornieren" class="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition shadow-sm">
+                                    <i data-lucide="x-circle" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="p-12 text-center text-slate-400">
+                            <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-4 opacity-20"></i>
+                            Keine offenen Vorgänge vorhanden.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>
+{% endblock %}
