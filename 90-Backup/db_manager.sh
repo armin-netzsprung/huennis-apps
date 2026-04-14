@@ -1,6 +1,6 @@
 #!/bin/bash
 # BACKUP_DIR="./db_backups"
-BACKUP_DIR="/home/armin-huenniger/dev/90-Backup/huennis-blog"
+BACKUP_DIR="/home/armin-huenniger/dev/90-Backup/huennis-apps"
 mkdir -p "$BACKUP_DIR"
 
 GREEN='\033[0;32m'

@@ -1,4 +1,5 @@
 import os
+import getpass
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -57,38 +58,86 @@ USE_TZ = True
 # ==============================================================================
 AZURE_CLIENT_ID = os.getenv('OFFICE_AZURE_CLIENT_ID')
 
+# ==============================================================================
+# 2. UMGEBUNGS- & IDENTITÄTS-LOGIK
+# ==============================================================================
+
+# Pfad-basierte Umgebungs-Erkennung
+current_path = str(BASE_DIR)
+
+if "test-huennis-apps" in current_path:
+    ENV_MODE = 'test'
+    DEBUG = False 
+elif "dev-huennis-apps" in current_path:
+    ENV_MODE = 'dev'
+    DEBUG = True
+else:
+    ENV_MODE = 'prod'
+    DEBUG = False
+
+# --- Identitäts-Zuweisung ---
 if SITE_IDENTITY == 'office':
-    ALLOWED_HOSTS = ['officecentral365.netzsprung.de', 'officecentral365.com', 'localhost', '127.0.0.1']
+    # Erlaube Subdomains für Test/Dev falls nötig
+    ALLOWED_HOSTS = [
+    'officecentral365.netzsprung.de', 
+    'dev.officecentral365.netzsprung.de', 
+    'test.officecentral365.netzsprung.de', 
+    'officecentral365.com', 
+    'localhost', 
+    '127.0.0.1'
+    ]
     DB_NAME = os.getenv('OFFICE_DB_NAME')
     DB_USER = os.getenv('OFFICE_DB_USER')
-    
-    # Spezifische Apps
     INSTALLED_APPS += ['crm', 'seafile_drive', 'mail_hub', 'erp']
-    
-    # Mail Hub Secrets
     AZURE_CLIENT_ID = os.getenv('OFFICE_AZURE_CLIENT_ID')
     MAILHUB_ENCRYPTION_KEYS = [os.getenv('OFFICE_MAILHUB_ENCRYPTION_KEY')]
 
 elif SITE_IDENTITY == 'netzsprung':
-    ALLOWED_HOSTS = ['netzsprung.de', 'www.netzsprung.de', 'localhost', '127.0.0.1']
+    ALLOWED_HOSTS = ['netzsprung.de','dev.netzsprung.de','test.netzsprung.de', 'www.netzsprung.de', 'localhost', '127.0.0.1']
     DB_NAME = os.getenv('NETZSPRUNG_DB_NAME')
     DB_USER = os.getenv('NETZSPRUNG_DB_USER')
     INSTALLED_APPS.append('shop')
 
 else: # Standard: blick
-    ALLOWED_HOSTS = ['blick-dahinter.de', 'www.blick-dahinter.de', 'localhost', '127.0.0.1']
+    ALLOWED_HOSTS = ['blick-dahinter.de','dev.blick-dahinter.de','test.blick-dahinter.de', 'www.blick-dahinter.de', 'localhost', '127.0.0.1']
     DB_NAME = os.getenv('BLICK_DB_NAME')
     DB_USER = os.getenv('BLICK_DB_USER')
     INSTALLED_APPS.append('shop')
 
-# Datenbank-Zuweisung
+# --- Dynamische Datenbank-Anpassung ---
+if ENV_MODE == 'dev':
+    DB_NAME = f"dev_{DB_NAME}"
+elif ENV_MODE == 'test':
+    DB_NAME = f"test_{DB_NAME}"
+    # Für Test-Subdomains (falls ihr test.blick-dahinter.de nutzt)
+    # ALLOWED_HOSTS = [f"test.{host}" for host in ALLOWED_HOSTS if not host in ['localhost', '127.0.0.1']] + ALLOWED_HOSTS
+
+# # Finales Datenbank-Dictionary
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': DB_NAME,
+#         'USER': DB_USER,
+#         'PASSWORD': os.getenv('DATABASE_PASSWORD'),
+#         'HOST': '172.17.0.1',
+#         'PORT': '5432',
+#     }
+# }
+
+# Prüfen, wer das Script gerade ausführt
+current_user = getpass.getuser()
+
+# Wenn der User 'coder' ist, sind wir im Docker-Container -> 172.17.0.1
+# Wenn nicht (z.B. netzsprung-admin auf Host), nutzen wir localhost
+DB_HOST = '172.17.0.1' if current_user == 'coder' else '127.0.0.1'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': DB_NAME,
         'USER': DB_USER,
         'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-        'HOST': '127.0.0.1',
+        'HOST': DB_HOST,
         'PORT': '5432',
     }
 }
@@ -104,9 +153,16 @@ if SITE_IDENTITY == 'office':
     STATICFILES_DIRS.append(os.path.join(BASE_DIR, 'mail_hub', 'static'))
 
 if not DEBUG:
-    STATIC_ROOT = '/var/www/huennis-blog/staticfiles/'
-    MEDIA_ROOT = '/var/www/huennis-blog/media/'
+    # Automatische Trennung zwischen TEST und PROD
+    if ENV_MODE == 'test':
+        STATIC_ROOT = '/var/www/test-huennis-apps/staticfiles/'
+        MEDIA_ROOT = '/var/www/test-huennis-apps/media/'
+    else:
+        # Standard für PROD
+        STATIC_ROOT = '/var/www/huennis-apps/staticfiles/'
+        MEDIA_ROOT = '/var/www/huennis-apps/media/'
 else:
+    # Für DEV (Lokal/Dev-Verzeichnis)
     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
@@ -122,9 +178,15 @@ AZURE_AUTHORITY = 'https://login.microsoftonline.com/common'
 # ==============================================================================
 CSRF_TRUSTED_ORIGINS = [
     'https://officecentral365.netzsprung.de',
+    'https://dev.officecentral365.netzsprung.de',
+    'https://test.officecentral365.netzsprung.de',
     'https://netzsprung.de',
+    'https://dev.netzsprung.de',
+    'https://test.netzsprung.de',
     'https://www.netzsprung.de',
     'https://blick-dahinter.de',
+    'https://dev.blick-dahinter.de',
+    'https://test.blick-dahinter.de',
     'https://www.blick-dahinter.de',
 ]
 

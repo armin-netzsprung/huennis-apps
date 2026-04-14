@@ -18,15 +18,15 @@ def run_full_backup(script_dir):
     backup_filename = f"FULL-BACKUP_{timestamp}.tar.gz"
     
     # 1. Pfade definieren
-    # script_dir ist ~/dev/huennis-blog/10-Manage-Scripte
-    # project_root ist ~/dev/huennis-blog
+    # script_dir ist ~/dev/huennis-apps/10-Manage-Scripte
+    # project_root ist ~/dev/huennis-apps
     project_root = os.path.abspath(os.path.join(script_dir, ".."))
     
     # dev_dir ist ~/dev/
     dev_dir = os.path.abspath(os.path.join(project_root, ".."))
     
-    # Ziel: ~/dev/90-Backup/huennis-blog
-    target_base = os.path.join(dev_dir, "90-Backup", "huennis-blog")
+    # Ziel: ~/dev/90-Backup/huennis-apps
+    target_base = os.path.join(dev_dir, "90-Backup", "huennis-apps")
     
     if not os.path.exists(target_base):
         os.makedirs(target_base, exist_ok=True)
@@ -61,9 +61,9 @@ def run_full_backup(script_dir):
     ]
     
     try:
-        # Wir stehen in ~/dev/ und packen den Ordner "huennis-blog"
+        # Wir stehen in ~/dev/ und packen den Ordner "huennis-apps"
         parent_dir = dev_dir
-        target_folder = os.path.basename(project_root) # "huennis-blog"
+        target_folder = os.path.basename(project_root) # "huennis-apps"
         
         cmd = ["tar", "-czf", full_output_path] + exclude_args + ["-C", parent_dir, target_folder]
         
@@ -85,7 +85,7 @@ def run_gemini_backup(script_dir):
     
     project_root = os.path.abspath(os.path.join(script_dir, ".."))
     dev_dir = os.path.abspath(os.path.join(project_root, ".."))
-    target_base = os.path.join(dev_dir, "90-Backup", "huennis-blog")
+    target_base = os.path.join(dev_dir, "90-Backup", "huennis-apps")
     
     if not os.path.exists(target_base):
         os.makedirs(target_base, exist_ok=True)
@@ -127,7 +127,7 @@ def run_gemini_backup(script_dir):
 
 def main():
     env_label, is_dev = get_env_info()
-    # Das Verzeichnis, in dem dieses Script liegt (~/dev/huennis-blog)
+    # Das Verzeichnis, in dem dieses Script liegt (~/dev/huennis-apps)
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
     while True:

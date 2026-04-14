@@ -6,7 +6,7 @@ import sys
 # Konfiguration der Projekte
 # Name der Anzeige -> Pfad zum Shell-Skript
 PROJECTS = {
-    "1": ("Huennis Blog (Blick & Netzsprung & OfficeCentral365)", "deploy-huennis-blog.sh"),
+    "1": ("Huennis Blog (Blick & Netzsprung & OfficeCentral365)", "deploy-huennis-apps.sh"),
     # "2": ("Anderes Projekt", "deploy-other.sh"), # Platzhalter für später
 }
 

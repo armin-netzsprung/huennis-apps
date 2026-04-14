@@ -4,7 +4,7 @@ set -e
 # --- KONFIGURATION ---
 REMOTE_USER="netzsprung-admin"
 REMOTE_HOST="server2.netzsprung.de" 
-REMOTE_TARGET="/var/www/huennis-blog"
+REMOTE_TARGET="/var/www/huennis-apps"
 
 # 1. VENV-ERKENNUNG (LOKAL)
 if [ -n "$VIRTUAL_ENV" ]; then

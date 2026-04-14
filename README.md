@@ -45,7 +45,7 @@ Stelle sicher, dass Python 3.14 und die PostgreSQL-Datenbank auf Ubuntu 24.04 in
 ### 2. Repository klonen & Venv einrichten
 ```bash
 git clone <dein-repo-url>
-cd huennis-blog
+cd huennis-apps
 python3.14 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt

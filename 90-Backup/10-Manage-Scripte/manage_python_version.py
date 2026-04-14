@@ -5,7 +5,7 @@ from datetime import datetime
 PROJECTS = {
     "1": {
         "name": "Hünnis Blog & Office Cluster",
-        "path": "huennis-blog",
+        "path": "huennis-apps",
         "systemd_files": [
             "/etc/systemd/system/gunicorn_blick.service",
             "/etc/systemd/system/gunicorn_netzsprung.service",
