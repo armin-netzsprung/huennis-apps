@@ -2,6 +2,12 @@
     "folders": [
         {
             "path": "."
+        },
+        {
+            "path": "../95-nginx-config"
+        },
+        {
+            "path": "../96-systemd-configs"
         }
     ]
 }

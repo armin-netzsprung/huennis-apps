@@ -197,6 +197,7 @@
                 {% if SITE_IDENTITY == 'office' %}
                     <a href="{% url 'crm:index' %}" class="block py-3 text-lg font-bold accent-sage hover:bg-slate-50 rounded-xl">Dashboard</a>
                     <a href="{% url 'admin:index' %}" class="block py-3 text-lg hover:bg-slate-50 rounded-xl">System-Admin</a>
+                    <a href="{% url 'wiki:wiki_index' %}" class="block py-3 text-lg font-semibold accent-sage hover:bg-slate-50 rounded-xl">Linux Wiki</a>
                 {% else %}
                     <a href="{% url 'home' %}" class="block py-3 text-lg hover:bg-slate-50 rounded-xl">Home</a>
                     <a href="{% url 'blog_index' %}" class="block py-3 text-lg hover:bg-slate-50 rounded-xl">Blog</a>

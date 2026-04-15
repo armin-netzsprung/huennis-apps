@@ -239,3 +239,154 @@ cd /opt/vscode
 docker compose up -d --force-recreate
 sudo docker logs vscode -f
 
+armin-huenniger ALL=(ALL) NOPASSWD:ALL
+sudo usermod -aG sudo armin-huenniger
+
+
+# Zum richtigen Verzeichnis wechseln
+cd /etc/nginx/sites-enabled/
+
+# Bestehende (alte) Verknüpfung entfernen, falls vorhanden
+sudo rm -f cloud.netzsprung.de.conf
+
+# Neue Verknüpfung von 'available' nach 'enabled' erstellen
+sudo ln -s /etc/nginx/sites-available/cloud.netzsprung.de.conf /etc/nginx/sites-enabled/
+
+sudo docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' seafile-onlyoffice
+
+
+
+
+Dienst / Container,Port (Host),Ziel (Intern),Status / Info
+Nginx (Host),80 / 443,-,Aktiv (Entry Point)
+Seafile (Cloud),8082,80,Hier liegt der Fehler! (Nginx sucht 8081)
+Mailcow (UI),8080 / 8443,8080 / 8443,Aktiv
+Postgres (DB),5432,-,Aktiv (System-Dienst)
+VS Code Server,8070,8080,Aktiv
+VS Code Apps,8010 - 8012,8010 - 8012,Reserviert für deine Dev-Apps
+
+
+
+
+Das ist eine sehr hilfreiche Übersicht. Ich habe dir daraus eine strukturierte Dokumentation erstellt, die nicht nur die nackten Daten enthält, sondern auch direkt die **Zusammenhänge** (wer spricht mit wem) und eine **Checkliste für Fehler** bietet.
+
+Diese Datei kannst du als `SERVER_PORTS.md` in deinem `~/tools/` Ordner speichern.
+
+***
+
+# 🖥️ System Port Dashboard: Server-Zustand
+**Stand:** 15. April 2026, 09:01 UTC
+**Server:** `server2.netzsprung.de`
+
+---
+
+## 🌍 1. Web-Entry Points (Öffentliche Ports)
+Diese Ports sind die "Eingangstüren" deines Servers. Nginx nimmt die Anfragen hier an und verteilt sie intern weiter.
+
+| Port | Dienst | Funktion | Status |
+|:--- |:--- |:--- |:---|
+| **80** | Nginx | HTTP (wird autom. auf HTTPS umgeleitet) | ✅ Aktiv |
+| **443** | Nginx | HTTPS (Haupt-Verschlüsselung) | ✅ Aktiv |
+| **22** | SSH | Fernwartung (sshd) | ✅ Aktiv |
+
+---
+
+## 🐳 2. Docker & Container Services
+Hier sind die internen Brücken zwischen dem Host-System und den isolierten Containern.
+
+### 🌊 Seafile & Office (Cloud-Infrastruktur)
+| Host-Port | Ziel (Container) | Dienst | Nginx-Backend Ziel |
+|:--- |:--- |:--- |:---|
+| **8081** | 80/tcp | Seafile-Server | `http://127.0.0.1:8081` |
+| **8444** | 443/tcp | Seafile-Server (SSL) | - |
+| **8082** | 80/tcp | OnlyOffice | `http://127.0.0.1:8082` |
+
+### 📧 Mailcow (E-Mail System)
+| Host-Port | Dienst | Funktion |
+|:--- |:--- |:--- |
+| **8080** | Mailcow UI | Admin-Oberfläche & Webmail (SOGo) |
+| **8443** | Mailcow UI | Verschlüsseltes Admin-Interface |
+| **25, 465, 587** | Postfix | SMTP (E-Mail Versand) |
+| **110, 143, 993, 995**| Dovecot | IMAP/POP3 (E-Mail Empfang) |
+
+### 💻 Development (VS-Code & Tools)
+| Host-Port | Dienst | Funktion |
+|:--- |:--- |:--- |
+| **8070** | VS-Code Server | Web-IDE Browserzugriff |
+| **8010 - 8012** | Dev-Apps | Reservierte Ports für Python/Django Testläufe |
+
+---
+
+## 🐍 3. Python & Gunicorn (Interne Apps)
+Gunicorn nutzt **Unix-Sockets** anstelle von Ports, was schneller und sicherer ist.
+
+> [!CAUTION]
+> **Aktueller Status:** Keine aktiven Sockets gefunden.
+> Wenn du deine Django-Apps (test.netzsprung.de) erreichen willst, müssen die `.service`-Units gestartet sein.
+
+**Befehl zum Fixen:**
+```bash
+sudo systemctl start gunicorn_netzsprung.socket
+sudo systemctl start gunicorn_netzsprung_test.service
+```
+
+---
+
+## 🐘 4. Datenbanken & Systemdienste
+| Port | Dienst | Nutzer | Zugriff |
+|:--- |:--- |:--- |:---|
+| **5432** | PostgreSQL | `postgres` | Lokal & Intern (0.0.0.0) |
+| **13306** | MariaDB (Mailcow) | `root` | Nur Localhost (127.0.0.1) |
+| **53** | systemd-resolve | `systemd` | DNS-Auflösung |
+
+---
+
+## 🛠️ Schnell-Diagnose bei Fehlern
+
+### "502 Bad Gateway" (Cloud/Seafile)
+1. Prüfen ob Container läuft: `docker ps | grep seafile`
+2. Prüfen ob Port 8081 offen ist: `sudo ss -tulpn | grep 8081`
+3. Nginx-Config checken: `cat /etc/nginx/sites-enabled/cloud.netzsprung.de.conf`
+
+### "500 Internal Server Error" (Django Test-App)
+1. Identity prüfen: `echo $SITE_IDENTITY`
+2. Gunicorn Status: `sudo systemctl status gunicorn_netzsprung_test.service`
+3. Logs einsehen: `sudo journalctl -u gunicorn_netzsprung_test -f`
+
+### "SSL-Fehler"
+1. Zertifikatsliste: `sudo certbot certificates`
+2. Nginx-Test: `sudo nginx -t`
+
+---
+
+**Hinweis:** Dieses Dokument wurde automatisch basierend auf dem `show-ports.sh` Output generiert. Alle Passwörter und Identitäten (z.B. `netzsprung`) müssen in den jeweiligen `.env` oder Service-Dateien hinterlegt sein.
+
+***
+
+### Wie du diese Datei nutzt:
+Du kannst diesen Block einfach kopieren und in eine Datei namens `ZUSTAND.md` auf deinem Server einfügen. Wenn du das nächste Mal eine Port-Übersicht brauchst, hast du diese Legende als Vergleichswert.
+
+
+
+Kategorie,Dienst / Container,Port / Pfad,Ziel / Info,Status
+Web,Nginx (Main),80 / 443,External Entry Point,✅ AKTIV
+System,SSH Daemon,22,Fernwartung,✅ AKTIV
+Datenbank,PostgreSQL,5432,System DB (Postgres),✅ AKTIV
+Cloud,Seafile Server,8081,-> Container Port 80,✅ AKTIV
+Cloud,Seafile Server,8444,-> Container Port 443,✅ AKTIV
+Office,OnlyOffice,8082,-> Container Port 80,✅ AKTIV
+Dev,VS-Code UI,8070,-> Container Port 8080,✅ AKTIV
+Dev,VS-Code Apps,8010 - 8012,Manuelle Dev-Ports,✅ BEREIT
+Mail,Mailcow Nginx,8080 / 8443,Admin & Webmail UI,✅ AKTIV
+Mail,Postfix,25 / 465 / 587,SMTP Versand,✅ AKTIV
+Mail,Dovecot,110 / 143 / 993 / 995,IMAP/POP3 Empfang,✅ AKTIV
+Mail,Mailcow MySQL,13306,Nur 127.0.0.1 (Docker),✅ AKTIV
+Python,Gunicorn Netzsprung,/run/gunicorn_netzsprung.sock,Prod Identity: netzsprung,✅ AKTIV
+Python,Gunicorn Netzsprung Test,/run/gunicorn_netzsprung_test.sock,Test Identity: netzsprung,✅ AKTIV
+Python,Gunicorn Blick,/run/gunicorn_blick.sock,Prod Identity: blick,✅ AKTIV
+Python,Gunicorn Blick Test,/run/gunicorn_blick_test.sock,Test Identity: blick,✅ AKTIV
+Python,Gunicorn Office,/run/gunicorn_office.sock,Prod Identity: office,✅ AKTIV
+Python,Gunicorn Office Test,/run/gunicorn_office_test.sock,Test Identity: office,✅ AKTIV
+System,DNS Resolver,53,systemd-resolve,✅ AKTIV
+Docker,Seafile-Redis,6379 (intern),Cache,✅ AKTIV
+Docker,Seafile-DB,3306 (intern),MariaDB 10.11,✅ AKTIV
