@@ -48,19 +48,62 @@ class SeafileClient:
             return response.json() # Das ist die reine URL als String
         return None
 
+    def ensure_dir_exists(self, repo_id, path):
+        """
+        Erstellt die Ordnerstruktur rekursiv, falls sie nicht existiert.
+        Beispiel: /KD-1000/Rechnungen/
+        """
+        if not path or path == "/":
+            return True
+
+        # Wir zerlegen den Pfad in seine Bestandteile
+        parts = [p for p in path.split('/') if p]
+        current_path = ""
+
+        for part in parts:
+            current_path += f"/{part}"
+            
+            # Check ob dieser Teil-Pfad existiert
+            url = f"{self.server_url}/api2/repos/{repo_id}/dir/?p={current_path}"
+            res = requests.get(url, headers=self.headers)
+            
+            if res.status_code != 200:
+                # Ordner existiert nicht -> Erstellen
+                print(f"DEBUG: Erstelle Verzeichnis {current_path}...")
+                mkdir_url = f"{self.server_url}/api2/repos/{repo_id}/dir/?p={current_path}"
+                # Die Seafile API erwartet 'operation=mkdir' als POST-Parameter
+                mkdir_res = requests.post(mkdir_url, headers=self.headers, data={'operation': 'mkdir'})
+                
+                if mkdir_res.status_code not in [200, 201]:
+                    print(f"DEBUG: Fehler beim Erstellen von {current_path}: {mkdir_res.text}")
+                    return False
+        return True
+
+    
+    
     def upload_file(self, repo_id, filename, file_content, parent_dir="/"):
         """
-        Lädt eine Datei (als Byte-Stream) in ein Seafile-Verzeichnis hoch.
+        Lädt eine Datei hoch und stellt sicher, dass der Ordner existiert.
         """
-        url = f"{self.server_url}/api2/repos/{repo_id}/upload-link/"
+        # Sicherstellen, dass die Struktur existiert
+        if not self.ensure_dir_exists(repo_id, parent_dir):
+            return False
+
+        # 1. Upload-Link holen
+        url = f"{self.server_url}/api2/repos/{repo_id}/upload-link/?p={parent_dir}"
         response = requests.get(url, headers=self.headers)
         
         if response.status_code != 200:
             return False
             
         upload_url = response.json()
+        
+        # 2. Upload durchführen
         files = {'file': (filename, file_content)}
         data = {'parent_dir': parent_dir}
         
-        upload_response = requests.post(upload_url, headers=self.headers, files=files, data=data)
-        return upload_response.status_code == 200
+        try:
+            upload_response = requests.post(upload_url, headers=self.headers, files=files, data=data)
+            return upload_response.status_code == 200
+        except Exception:
+            return False

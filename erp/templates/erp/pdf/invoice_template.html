@@ -4,151 +4,153 @@
     <meta charset="utf-8">
     <title>{{ doc.document_number }}</title>
     <style>
-        @page {
-            size: A4;
-            margin: 2cm;
+        /* PDF-spezifisches CSS für xhtml2pdf */
+        @page { 
+            size: A4; 
+            margin: 2cm; 
+            @frame footer {
+                -pdf-frame-content: footer-content;
+                bottom: 1cm;
+                margin-left: 2cm;
+                margin-right: 2cm;
+                height: 2cm;
+            }
         }
-        body {
-            font-family: 'Helvetica', 'Arial', sans-serif;
-            font-size: 11pt;
-            color: #333;
-            line-height: 1.4;
-        }
-        .header {
-            margin-bottom: 2cm;
-            display: flex;
-            justify-content: space-between;
-        }
-        .address-block {
-            margin-bottom: 1.5cm;
-            font-size: 10pt;
-        }
-        .doc-info {
-            margin-bottom: 1cm;
-        }
-        .doc-info h1 {
-            font-size: 18pt;
-            margin: 0;
-            color: #000;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 1cm;
-        }
-        th {
-            border-bottom: 2px solid #000;
-            text-align: left;
-            padding: 8px;
-            font-size: 9pt;
-            text-transform: uppercase;
-        }
-        td {
-            padding: 8px;
-            border-bottom: 1px solid #eee;
-            vertical-align: top;
-        }
+        
+        body { font-family: sans-serif; font-size: 10pt; line-height: 1.5; color: #333; }
         .text-right { text-align: right; }
-        .totals-table {
-            width: 40%;
-            margin-left: 60%;
-        }
-        .totals-table td { border-bottom: none; padding: 4px 8px; }
-        .grand-total {
-            font-weight: bold;
-            font-size: 12pt;
-            border-top: 1px solid #000;
-        }
-        .footer {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            font-size: 8pt;
-            color: #777;
-            border-top: 1px solid #eee;
-            padding-top: 10px;
-        }
+        .bold { font-weight: bold; }
+        
+        .header-table { width: 100%; margin-bottom: 20px; }
+        .address-box { margin-bottom: 40px; min-height: 100px; }
+        .doc-title { font-size: 16pt; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        
+        table.items-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        table.items-table th { border-bottom: 1px solid #000; padding: 5px; text-align: left; background-color: #f2f2f2; }
+        table.items-table td { padding: 8px 5px; border-bottom: 0.5px solid #ccc; vertical-align: top; }
+        
+        .totals-table { width: 45%; margin-left: 55%; border-collapse: collapse; }
+        .totals-table td { padding: 3px 5px; }
+        .grand-total { font-size: 12pt; border-top: 1.5px solid #000; font-weight: bold; }
+        
+        #footer-content { font-size: 8pt; color: #666; text-align: center; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div>
-            <strong>DEIN FIRMENNAME GMBH</strong><br>
-            Musterstraße 1, 12345 Berlin
-        </div>
-        <div class="text-right">
-            LOGO HIER
-        </div>
+
+    <table class="header-table">
+        <tr>
+            <td style="width: 60%;">
+                <small style="text-decoration: underline;">Dein Unternehmen | Musterweg 1 | 12345 Berlin</small><br><br>
+                <div class="address-box">
+                    <strong>{{ doc.customer.company_name|default:doc.customer }}</strong><br>
+                    {% if address %}
+                        {{ address.street }}<br>
+                        {{ address.zip_code }} {{ address.city }}<br>
+                        {{ address.country }}
+                    {% else %}
+                        <span style="color: red;">Keine Rechnungsadresse hinterlegt</span>
+                    {% endif %}
+                </div>
+            </td>
+            <td class="text-right" style="vertical-align: top; width: 40%;">
+                <h2 style="margin: 0; color: #666;">LOGOPLATZ</h2>
+            </td>
+        </tr>
+    </table>
+
+    <div class="doc-title">
+        {{ doc.get_document_type_display }} {{ doc.document_number }}
     </div>
 
-    <div class="address-block">
-        {{ doc.customer.company_name }}<br>
-        {{ doc.customer.street }}<br>
-        {{ doc.customer.zip_code }} {{ doc.customer.city }}
+    <table style="width: 100%; margin-bottom: 20px;">
+        <tr>
+            <td>Datum: <strong>{{ doc.document_date|date:"d.m.Y" }}</strong></td>
+            <td class="text-right">Kundennummer: <strong>{{ doc.customer.internal_id }}</strong></td>
+        </tr>
+    </table>
+
+    <div style="margin-bottom: 20px;">
+        {{ doc.intro_text|safe|linebreaks }}
     </div>
 
-    <div class="doc-info">
-        <h1>RECHNUNG {{ doc.document_number }}</h1>
-        <p>Datum: {{ doc.date|date:"d.m.Y" }}<br>
-           Kundennummer: {{ doc.customer.customer_number }}</p>
-    </div>
-
-    <div class="intro">
-        {{ doc.intro_text|safe }}
-    </div>
-
-    <table>
+    <table class="items-table">
         <thead>
             <tr>
-                <th style="width: 10%">Pos</th>
-                <th style="width: 50%">Bezeichnung</th>
-                <th class="text-right">Menge</th>
-                <th class="text-right">Preis</th>
-                <th class="text-right">Gesamt</th>
+                <th style="width: 5%;">Pos</th>
+                <th style="width: 55%;">Beschreibung</th>
+                <th class="text-right" style="width: 10%;">Menge</th>
+                <th class="text-right" style="width: 15%;">Einzel (€)</th>
+                <th class="text-right" style="width: 15%;">Gesamt (€)</th>
             </tr>
         </thead>
         <tbody>
-            {% for item in doc.items.all|dictsort:"position" %}
+            {% for item in doc.items.all %}
             <tr>
                 <td>{{ item.position }}</td>
                 <td>
-                    <strong>{{ item.title }}</strong><br>
-                    <small>{{ item.description|default:"" }}</small>
+                    <span class="bold">{{ item.title }}</span><br>
+                    <small>{{ item.description|linebreaksbr }}</small>
                 </td>
-                <td class="text-right">{{ item.quantity }} {{ item.unit.abbreviation }}</td>
-                <td class="text-right">{{ item.unit_price|floatformat:2 }} €</td>
-                <td class="text-right">{{ item.net_total|floatformat:2 }} €</td>
+                <td class="text-right">{{ item.quantity|floatformat:2 }}</td>
+                <td class="text-right">{{ item.unit_price|floatformat:2 }}</td>
+                <td class="text-right">{{ item.net_total|floatformat:2 }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 
-    <table class="totals-table">
-        <tr>
-            <td>Netto Gesamt:</td>
-            <td class="text-right">{{ doc.net_amount|floatformat:2 }} €</td>
-        </tr>
-        {% if doc.tax_amounts %}
-            {% for tax_rate, amount in doc.tax_amounts.items %}
+    <div class="totals-container">
+        <table class="totals-table">
             <tr>
-                <td>MwSt ({{ tax_rate }}%):</td>
+                <td>Netto Summe:</td>
+                <td class="text-right">{{ doc.net_total|floatformat:2 }} €</td>
+            </tr>
+            
+            {% if doc.global_discount_percentage > 0 %}
+            <tr>
+                <td>Rabatt ({{ doc.global_discount_percentage }}%):</td>
+                <td class="text-right">-{{ doc.global_discount_amount|floatformat:2 }} €</td>
+            </tr>
+            {% endif %}
+
+            {% for rate, amount in doc.taxes.items %}
+            <tr>
+                <td>MwSt ({{ rate }}%):</td>
                 <td class="text-right">{{ amount|floatformat:2 }} €</td>
             </tr>
             {% endfor %}
-        {% endif %}
-        <tr class="grand-total">
-            <td>Brutto Betrag:</td>
-            <td class="text-right">{{ doc.total_amount|floatformat:2 }} €</td>
-        </tr>
-    </table>
 
-    <div class="outro">
-        {{ doc.outro_text|safe }}
+            <tr class="grand-total">
+                <td>Gesamtbetrag:</td>
+                <td class="text-right">{{ doc.gross_total|floatformat:2 }} €</td>
+            </tr>
+        </table>
     </div>
 
-    <div class="footer">
-        Bankverbindung: IBAN DE12 3456 7890 1234 5678 90 | BIC: ABCDEFGH<br>
-        Geschäftsführer: Max Mustermann | Amtsgericht Berlin HRB 12345
+    <div style="margin-top: 30px;">
+        {{ doc.outro_text|safe|linebreaks }}
     </div>
+
+    <div id="footer-content">
+        <hr>
+        <table style="width: 100%;">
+            <tr>
+                <td style="width: 33%;">
+                    {{ doc.customer.company_name|default:doc.customer }}<br>
+                    Berlin HRB 1234
+                </td>
+                <td style="width: 33%; text-align: center;">
+                    Bank: Deutsche Bank<br>
+                    IBAN: DE12 3456 7890 1234 5678 90
+                </td>
+                <td style="width: 33%; text-align: right;">
+                    GF: Max Mustermann<br>
+                    St.-Nr: 12/345/67890
+                </td>
+            </tr>
+        </table>
+    </div>
+
 </body>
 </html>
