@@ -47,3 +47,20 @@ class SeafileClient:
         if response.status_code == 200:
             return response.json() # Das ist die reine URL als String
         return None
+
+    def upload_file(self, repo_id, filename, file_content, parent_dir="/"):
+        """
+        Lädt eine Datei (als Byte-Stream) in ein Seafile-Verzeichnis hoch.
+        """
+        url = f"{self.server_url}/api2/repos/{repo_id}/upload-link/"
+        response = requests.get(url, headers=self.headers)
+        
+        if response.status_code != 200:
+            return False
+            
+        upload_url = response.json()
+        files = {'file': (filename, file_content)}
+        data = {'parent_dir': parent_dir}
+        
+        upload_response = requests.post(upload_url, headers=self.headers, files=files, data=data)
+        return upload_response.status_code == 200

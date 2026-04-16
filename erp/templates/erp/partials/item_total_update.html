@@ -1,0 +1,7 @@
+<span id="item-total-{{ item.id }}" hx-swap-oob="true">
+    {{ item.net_total|floatformat:2 }} €
+</span>
+
+<div id="summary-box-container" hx-swap-oob="true">
+    {% include "erp/partials/summary_box.html" %}
+</div>

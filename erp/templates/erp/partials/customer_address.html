@@ -1,0 +1,10 @@
+<p class="font-black text-lg">{{ customer.name }}</p> 
+{% with customer.addresses.all|first as addr %}
+    {% if addr %}
+        <p class="text-sm mt-1">{{ addr.street }} {{ addr.street_extra|default:"" }}</p>
+        <p class="text-sm">{{ addr.zip_code }} {{ addr.city }}</p>
+        <p class="text-sm text-slate-500 mt-1">{{ addr.country }}</p>
+    {% else %}
+        <p class="text-sm text-red-400 mt-1 italic">Keine Adresse hinterlegt</p>
+    {% endif %}
+{% endwith %}

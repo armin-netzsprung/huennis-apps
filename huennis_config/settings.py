@@ -3,6 +3,8 @@ import getpass
 from pathlib import Path
 from dotenv import load_dotenv
 
+
+# /home/coder/10-dev-huennis-apps/20-google-cloud-sdk
 # .env laden
 load_dotenv()
 

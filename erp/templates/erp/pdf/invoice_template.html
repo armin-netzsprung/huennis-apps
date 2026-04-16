@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{ doc.document_number }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 11pt;
+            color: #333;
+            line-height: 1.4;
+        }
+        .header {
+            margin-bottom: 2cm;
+            display: flex;
+            justify-content: space-between;
+        }
+        .address-block {
+            margin-bottom: 1.5cm;
+            font-size: 10pt;
+        }
+        .doc-info {
+            margin-bottom: 1cm;
+        }
+        .doc-info h1 {
+            font-size: 18pt;
+            margin: 0;
+            color: #000;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1cm;
+        }
+        th {
+            border-bottom: 2px solid #000;
+            text-align: left;
+            padding: 8px;
+            font-size: 9pt;
+            text-transform: uppercase;
+        }
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
+        }
+        .text-right { text-align: right; }
+        .totals-table {
+            width: 40%;
+            margin-left: 60%;
+        }
+        .totals-table td { border-bottom: none; padding: 4px 8px; }
+        .grand-total {
+            font-weight: bold;
+            font-size: 12pt;
+            border-top: 1px solid #000;
+        }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            font-size: 8pt;
+            color: #777;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <strong>DEIN FIRMENNAME GMBH</strong><br>
+            Musterstraße 1, 12345 Berlin
+        </div>
+        <div class="text-right">
+            LOGO HIER
+        </div>
+    </div>
+
+    <div class="address-block">
+        {{ doc.customer.company_name }}<br>
+        {{ doc.customer.street }}<br>
+        {{ doc.customer.zip_code }} {{ doc.customer.city }}
+    </div>
+
+    <div class="doc-info">
+        <h1>RECHNUNG {{ doc.document_number }}</h1>
+        <p>Datum: {{ doc.date|date:"d.m.Y" }}<br>
+           Kundennummer: {{ doc.customer.customer_number }}</p>
+    </div>
+
+    <div class="intro">
+        {{ doc.intro_text|safe }}
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 10%">Pos</th>
+                <th style="width: 50%">Bezeichnung</th>
+                <th class="text-right">Menge</th>
+                <th class="text-right">Preis</th>
+                <th class="text-right">Gesamt</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in doc.items.all|dictsort:"position" %}
+            <tr>
+                <td>{{ item.position }}</td>
+                <td>
+                    <strong>{{ item.title }}</strong><br>
+                    <small>{{ item.description|default:"" }}</small>
+                </td>
+                <td class="text-right">{{ item.quantity }} {{ item.unit.abbreviation }}</td>
+                <td class="text-right">{{ item.unit_price|floatformat:2 }} €</td>
+                <td class="text-right">{{ item.net_total|floatformat:2 }} €</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <table class="totals-table">
+        <tr>
+            <td>Netto Gesamt:</td>
+            <td class="text-right">{{ doc.net_amount|floatformat:2 }} €</td>
+        </tr>
+        {% if doc.tax_amounts %}
+            {% for tax_rate, amount in doc.tax_amounts.items %}
+            <tr>
+                <td>MwSt ({{ tax_rate }}%):</td>
+                <td class="text-right">{{ amount|floatformat:2 }} €</td>
+            </tr>
+            {% endfor %}
+        {% endif %}
+        <tr class="grand-total">
+            <td>Brutto Betrag:</td>
+            <td class="text-right">{{ doc.total_amount|floatformat:2 }} €</td>
+        </tr>
+    </table>
+
+    <div class="outro">
+        {{ doc.outro_text|safe }}
+    </div>
+
+    <div class="footer">
+        Bankverbindung: IBAN DE12 3456 7890 1234 5678 90 | BIC: ABCDEFGH<br>
+        Geschäftsführer: Max Mustermann | Amtsgericht Berlin HRB 12345
+    </div>
+</body>
+</html>

@@ -114,6 +114,40 @@ class Document(models.Model):
         verbose_name_plural = 'Dokumente'
         ordering = ['-document_date', '-document_number']
 
+    def create_follow_up(self, target_type):
+        """
+        Erstellt aus dem aktuellen Dokument ein Folge-Dokument (z.B. AN -> RE).
+        Kopiert alle Kopfdaten und alle Positionen.
+        """
+        # 1. Neues Dokument-Objekt im Speicher erstellen
+        new_doc = Document.objects.get(pk=self.pk)
+        new_doc.pk = None  # Veranlasst Django, eine neue ID zu vergeben
+        new_doc.document_type = target_type
+        new_doc.document_number = ""  # Wird durch save() neu generiert
+        new_doc.status = 'draft'
+        new_doc.parent_document = self
+        new_doc.document_date = timezone.now().date()
+        new_doc.save()
+
+        # 2. Positionen kopieren
+        for item in self.items.all():
+            item.pk = None
+            item.document = new_doc
+            item.save()
+            
+        return new_doc
+
+    @property
+    def is_canary_islands(self):
+        """Prüft, ob der Kunde auf den Kanaren sitzt (für IGIC 7%)"""
+        # Hier logik implementieren, z.B. über das Feld 'country' oder 'zip_code' der LegalEntity
+        # Beispielhaft:
+        if hasattr(self.customer, 'addresses'):
+            addr = self.customer.addresses.first()
+            if addr and "Teneriffa" in addr.street_extra or addr.zip_code.startswith(('38', '35')):
+                return True
+        return False
+
     def __str__(self):
         return f"{self.document_number} - {self.customer}"
 
